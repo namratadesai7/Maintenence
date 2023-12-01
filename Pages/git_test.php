@@ -120,6 +120,58 @@ $date=date('Y-m-d');
                     </tr>
                  </tbody>
            </table>
+           <table class="table table-borderd text-center table-striped table-hover mb-0" id="ctickettable">
+                <thead>
+                     <tr class="bg-secondary text-light">
+                        <th>Sr</th>
+                        <th>Prod Stop</th>
+                        <th>Status </th>
+                        <th>Date </th>
+                        <th>User</th>
+                        <th>M/C No.</th>
+                        <th>Department </th>
+                        <th>Plant</th>
+                        <th>Issue</th>
+                        <th>Remark</th>
+                        <th>Assign to </th>
+                        <th>Approx time</th>
+                        <th>Unit</th>
+                        <th>Update </th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody> 
+                    <?php
+                        $sr=1;
+                        $sql="SELECT * FROM ticket where isdelete=0";
+                        $run=sqlsrv_query($conn,$sql);
+                        while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
+                        ?>
+                    <tr>
+                        <td><?php echo $sr;   ?></td>
+                        <td><?php echo $row['pstop'] ?></td>
+                        <td><?php echo "status" ?></td>
+                        <td><?php echo $row['date']->format('Y-m-d') ?></td>
+                        <td><?php echo $row['username'] ?></td>
+                        <td><?php echo $row['mcno'] ?></td>
+                        <td><?php echo $row['department'] ?></td>
+                        <td><?php echo $row['plant'] ?></td>
+                        <td><?php echo $row['issue'] ?></td>
+                        <td><?php echo $row['remark'] ?></td>
+                        <td><?php echo "assigned to" ?></td>
+                        <td><?php echo "approx time" ?></td>
+                        <td><?php echo "unit " ?></td>
+                        <td><?php echo "update" ?></td>
+                        <td><button type="button" class="btn btn-sm rounded-pill btn-primary edit" id="<?php echo $row['srno']  ?>" >Edit</button>
+                            <button type="button" class="btn btn-sm rounded-pill btn-danger delete" id="<?php echo $row['srno']  ?>">Delete</button>
+                        </td>
+                        <?php
+                        $sr++;
+                            }
+                        ?>            
+                    </tr>
+                 </tbody>
+           </table>
         </div>
     </div>
 <script>
