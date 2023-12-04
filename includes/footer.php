@@ -1,4 +1,15 @@
 <script>
+    $(document).ready(function() {
+        var id=$('#empid').val();
+      
+        if(id<3000){
+            $('.hide').hide();
+        }
+    });
+
+
+
+
 $(document).ready(function() {
     //jquery for toggle sub menus
     $('.sub-btn').click(function() {

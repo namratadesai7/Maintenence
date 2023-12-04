@@ -1,284 +1,261 @@
 <?php
 include('../includes/dbcon.php');
-$pageTitle = "Assign Ticket";
 include('../includes/header.php');
 
-$sql = "SELECT * from [maintenance].[dbo].[ticket]";
-$query = sqlsrv_query($conn, $sql);
-$row = sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
-
-$sql1 = "SELECT * from [maintenance].[dbo].[assign]";
-$query1 = sqlsrv_query($conn, $sql1);
-
+$sql = "SELECT * from ticket where isdelete=0";
+$run = sqlsrv_query($conn, $sql);
 ?>
-
 <title>
-  <?php echo $pageTitle; ?>
+    Assign Ticket
 </title>
 <style>
-  table.dataTable {
+    table.dataTable {
     border-collapse: collapse;
-  }
+    }
 
-  th {
-    white-space: nowrap;
-  }
+    th {
+        white-space: nowrap;
+    }
 
-  .pending {
-    background: #FFC04C !important;
-  }
+    td {
+        white-space: nowrap;
+    }
 
-  .viewall {
-    background: #7DE5F6 !important;
-  }
+    .pending {
+        background: #FFC04C !important;
+    }
 
-  @media only screen and (max-width:2600px) {
+    .viewall {
+        background: #7DE5F6 !important;
+    }
+    @media only screen and (max-width:2600px) {
     #assignTable {
-      display: block;
-      overflow-x: auto;
-      float: none !important;
+        display: block;
+        overflow-x: auto;
+        float: none !important;
     }
-  }
-
-  @media only screen and (max-width:768px) {
-    div.dt-buttons {
-      display: flex !important;
-      justify-content: center !important;
     }
 
-    .dataTables_wrapper .dataTables_filter {
-      display: flex;
-      justify-content: center;
-      padding-top: 10px;
-    }
-  }
-</style>
-</head>
-
-
-<div class="container-fluid">
-  <div class="row mb-2">
-    <div class="col-6">
-      <h2 class="title">Assign Ticket</h2>
-    </div>
-    <div class="col-6">
-      <button type="button" class="btn common-btn btn-info text-white fw-bold float-end" data-bs-toggle="modal"
-        data-bs-target="#assignTicket">Assign Ticket</button>
-    </div>
-  </div>
-  <div>
-    <table class="table table-bordered table-striped pt-2" id="assignTable">
-      <thead>
-
-        <tr>
-          <th>Sr No</th>
-          <th>Priority</th>
-          <th>Prod Stop</th>
-          <th>Status</th>
-          <th>Date</th>
-          <th>User</th>
-          <th>M/c No</th>
-          <th>Department</th>
-          <th>Plant</th>
-          <th>Problem</th>
-          <th>Remark</th>
-          <th>Assign To</th>
-          <th>Assign Date</th>
-          <th>Approx. Time</th>
-          <th>Unit</th>
-          <th>Update from Assign Person</th>
-          <th>Category</th>
-          <th>Sub Category</th>
-          <th>Role</th>
-          <th>Action</th>
-
-        </tr>
-      </thead>
-      <tbody>
-        <?php while($row1 = sqlsrv_fetch_array($query1, SQLSRV_FETCH_ASSOC)) {?>
-        <tr>
-          <td><?php echo $row1['srno']?></td>
-          <td><?php echo $row['priority']?></td>
-          <td><?php echo $row['proddtop']?></td>
-          <td><?php echo $row['status']?></td>
-          <td><?php echo $row['date']?></td>
-          <td><?php echo $row['user']?></td>
-          <td><?php echo $row['mcno']?></td>
-          <td><?php echo $row['department']?></td>
-          <td><?php echo $row['plant']?></td>
-          <td><?php echo $row['problem']?></td>
-          <td><?php echo $row['remark']?></td>
-          <td><?php echo $row1['ticket_id']?></td>
-          <td><?php echo $row1['prev_ticket_id']?></td>
-          <td><?php echo $row1['assignby']?></td>
-          <td><?php echo $row1['assignto']?></td>
-          <td><?php echo $row1['assign_date']?></td>
-          <td><?php echo $row1['approx_time']?></td>
-          <td><?php echo $row1['unit']?></td>
-          <td><?php echo $row1['updatefrom']?></td>
-          <td><?php echo $row1['cat']?></td>
-          <td><?php echo $row1['subcat']?></td>
-          <td><?php echo $row1['role']?></td>
-          <td>
-            <div class="d-flex">
-              <a type="button" class="btn btn-primary btn-sm me-1">Edit</a>
-              <a type="button" class="btn btn-success btn-sm me-1">Save</a>
-              <a type="button" class="btn btn-danger btn-sm">Cancel</a>
-            </div>
-          </td>
-          <?php } ?>
-        </tr>
-
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Modal -->
-  <div class="modal fade" id="assignTicket" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Assign Ticket</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body" style="background: #b9bbbe2b;">
-          <form id="assignForm" method="post" action="../main_db.php">
-            <div class="row">
-              <div class="col-md-3">
-                <label for="">Assign By</label>
-                <input type="text" name="assignby" id="" value="<?php echo $_SESSION['uname'] ?>" readonly
-                  class="form-control mt-1">
-                <input type="text" name="" id="" value="<?php echo $row['srno'] ?>">
-              </div>
-              <div class="col-md-3">
-                <label for="">Assign To</label>
-                <input type="text" name="assign_to" id="" value="" class="form-control mt-1">
-              </div>
-              <div class="col-md-3">
-                <label for="">Approx. Time</label>
-                <div class="input-group mt-1">
-                  <input type="number" name="approx_time" id="approxTime" class="form-control" required>
-                  <select name="unit" id="unit" class="form-control">
-                    <option value="hours">Hours</option>
-                    <option value="days">Days</option>
-                    <option value="months">Months</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="col-md-3">
-                <label for="">Priority</label>
-                <select name="priority" id="priority" class="form-control mt-1">
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
-            </div>
-            <div class="row mt-3">
-              <div class="col-md-3">
-                <label for="">Category</label>
-                <select name="cat" id="cat" class="form-control mt-1">
-                  <option value="mechanical">Mechanical</option>
-                  <option value="electrical">Electrical</option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <label for="">Sub Category</label>
-                <select name="subcat" id="subcat" class="form-control mt-1">
-                  <option value="Crane">Crane</option>
-                  <option value="Penal">Penal</option>
-                  <option value="Febrication">Febrication</option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <label for="">Role</label>
-                <select name="role" id="role" class="form-control mt-1">
-                  <option value="inhouse">In House</option>
-                  <option value="thirdparty">Third Party</option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <label for="">Update</label>
-                <input type="text" name="updatefrom" id="" class="form-control mt-1">
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-success" name="assignsave" id="assignSave"
-            form="assignForm">Submit</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // active link in sidebar
-  $('#aticket').addClass('active');
-
-  // datatable to table
-  $(document).ready(function () {
-    $('#assignTable').DataTable({
-      "processing": true,
-      "lengthMenu": [10, 25, 50, 75, 100],
-      "responsive": {
-        "details": true
-      },
-      "columnDefs": [
-        { "className": "dt-center", "targets": "_all" }
-      ],
-      dom: 'Bfrtip',
-      ordering: true,
-      destroy: true,
-      "order": [[1, 'desc']],
-      buttons: ['pageLength', {
-        text: 'Pending', className: 'pending',
-      },
-        {
-          text: 'View All', className: 'viewall',
-        }],
-      language: {
-        searchPlaceholder: "Search..."
-      }
-    });
-    // Assign Ticket - Save assigned ticket in database-table: assign
-    $('#assignSave').click(function () {
-      // Serialize the form data
-      var formData = $('#assignForm').serialize();
-
-      // Send the data using AJAX
-      $.ajax({
-        type: 'POST',
-        url: $('#assignForm').attr('action'),
-        data: formData,
-        success: function (data) {
-          alert(data); // Display the response from the server
-          $('#assignTicket').modal('hide');
-        },
-        error: function () {
-          alert('Error submitting form');
+    @media only screen and (max-width:768px) {
+        div.dt-buttons {
+            display: flex !important;
+            justify-content: center !important;
         }
-      });
+
+        .dataTables_wrapper .dataTables_filter {
+            display: flex;
+            justify-content: center;
+            padding-top: 10px;
+        }
+    }
+</style>
+<div class="container-fluid">
+    <div class="row mb-2">
+        <div class="col">
+            <h2 class="title">Assign Tickets</h2>
+        </div>
+
+    </div>
+    <div>
+        <table class="table table-bordered table-striped pt-2" id="assignTable">
+            <thead>
+                <tr>
+                    <th>Sr No</th>
+                    <th>Priority</th>
+                    <th>Prod Stop</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>M/c No</th>
+                    <th>Department</th>
+                    <th>Plant</th>
+                    <th>Issue</th>
+                    <th>Remark</th>
+                    <th>Assign To</th>
+                    <th>Assign Date</th>
+                    <th>Approx. Time</th>
+                    <th>Unit</th>
+                    <th>Update from Assign Person</th>
+                    <th>Category</th>
+                    <th>Sub Category</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                     $sr=1;
+                     while($row= sqlsrv_fetch_array($run, SQLSRV_FETCH_ASSOC)) {
+                     
+                        $sql1 = "SELECT assign_to,format(assign_date,'yyyy-MM-dd') as adate,approx_time,unit,update_assign,cat,subcat,role from assign where ticket_id=".$row['srno']." ";
+                        $run1 = sqlsrv_query($conn, $sql1);
+                        $row1 = sqlsrv_fetch_array($run1, SQLSRV_FETCH_ASSOC);
+                    ?>
+                        <tr>
+                            <td><?php echo $sr ?></td>
+                            <td> <?php echo $row['priority'] ?></td>
+                            <td> <?php echo $row['pstop'] ?></td>
+                            <td>Open</td>
+                            <td> <?php echo $row['date']->format('d-m-Y') ?></td>
+                            <td> <?php echo $row['username'] ?></td>
+                            <td> <?php echo $row['mcno'] ?></td>
+                            <td><?php echo $row['department']?></td>
+                            <td><?php echo $row['plant']?></td>
+                            <td><?php echo $row['issue']?></td>
+                            <td><?php echo $row['remark']?></td>
+                            <td><?php echo $row1['assign_to'] ?? '' ?></td>
+                            <td><?php echo $row1['adate'] ?? '' ?></td>
+                            <td><?php echo $row1['approx_time'] ?? '' ?></td>
+                            <td><?php echo $row1['unit'] ?? '' ?></td>
+                            <td><?php echo $row1['update_assign'] ?? '' ?></td>
+                            <td><?php echo $row1['cat'] ?? '' ?></td>
+                            <td><?php echo $row1['subcat'] ?? '' ?></td>
+                            <td><?php echo $row1['role'] ?? '' ?></td>
+                            <td> 
+                                <a type="button" class="btn btn-primary btn-sm me-1 edit"
+                                id="<?php echo $row['srno']   ?>">Edit</a>
+                                <!-- <a type="button" class="btn btn-success btn-sm me-1 assign assign-button"
+                                id="<?php echo $row['srno'] ?>"  onclick="setClickedRowId(<?php echo $row['srno'] ?>)" >Assign</a> -->
+                                <a type="button" class="btn btn-success btn-sm me-1 assign assign-button" id="<?php echo $row['srno'] ?>"
+                                                                >Assign</a>
+                                <a type="button" class="btn btn-danger btn-sm" 
+                                href="aticket_db.php?deleteid=<?php echo $row['srno']?>" 
+                                onclick="return confirm('Are you sure you want to delete the ticket? Once you click ok it will be removed from the below table?')" name="delete">Cancel</a>
+                            </td>
+                        </tr>                    
+                    <?php
+                    $sr++; }
+                ?>
+            </tbody>
+        </table>
+    </div>
+    <!-- modal for assign -->
+    <div class="modal fade" id="assignmodal" tabindex="-1" aria-labelledby="assignmodal" aria-hidden="true">
+        <div class="modal-dialog modal-xl ">
+            <div class="modal-content">
+                <div class="modal-header ">
+                    <h5 class="modal-title">Assign Ticket</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="aticket_db.php" method="post" id="assignform">
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn rounded-pill bg-secondary text-light"
+                        data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn rounded-pill common-btn save" name="save"
+                        form="assignform" >Save</button>
+                </div>
+            </div>
+        </div>
+    </div>                   
+       <!-- modal for edit -->
+    <div class="modal fade" id="editmodal" tabindex="-1" aria-labelledby="editmodal" aria-hidden="true">
+        <div class="modal-dialog modal-xl ">
+            <div class="modal-content">
+                <div class="modal-header ">
+                    <h5 class="modal-title">Assign Ticket</h5> 
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                 </div>
+                <div class="modal-body">  
+                    <form action="aticket_db.php" method="post" id="editform">
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn rounded-pill bg-secondary text-light" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn rounded-pill common-btn " name="edit"  form="editform">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>                    
+</div>
+<script>
+    $('#aticket').addClass('active');
+
+        
+    $(document).on('click', '.assign', function() {
+        
+        var sr = $(this).attr('id');
+        
+        $.ajax({
+            url: 'aticket_modal.php',
+            type: 'post',
+            data: {
+                sr: sr
+            },
+            // dataType: 'json',
+            success: function(data) {
+                $('#assignform').html(data);
+                $('#assignmodal').modal('show');
+            }
+        });
+
     });
-    // $(document).on('click', '#assignSave', function () {
-    //   console.log('hi click');
-    //   $.ajax({
-    //     url: 'main_db.php',
-    //     type: 'POST',
-    //     data: $('#assignForm').serialize(),
-    //     success: function (data) {
-    //       alert(data);
-    //       $('#assignTicket').modal('hide');
+
+    $(document).on('click','.edit',function(){
+
+        var sr = $(this).attr('id'); 
+       
+        $.ajax({
+            url:'aticketedit_modal.php',
+            type: 'post',
+            data: {sr:sr},  
+            // dataType: 'json',
+            success:function(data)
+            {
+            $('#editform').html(data);  
+            $('#editmodal').modal('show');
+            }
+        });
+    });
+    
+    // function saveAndDisable() {
+    // console.log('Clicked Row ID for Disable:', clickedRowId);
+
+    // // Your existing JavaScript code to disable the Assign button for the clicked row
+    // $('.assign-button').each(function () {
+    //     var rowId = $(this).data('row-id');
+    //     if (rowId == clickedRowId) {
+    //         $(this).prop('disabled', true);
+    //         console.log('Disabled Assign button for Row ID:', clickedRowId);
     //     }
-    //   });
     // });
-  });
 
-
+    // Close the modal if needed
+    // $('#myModal').modal('hide');
+//}
+    $(document).ready(function() {
+        $('#assignTable').DataTable({
+            "processing": true,
+            "lengthMenu": [10, 25, 50, 75, 100],
+            "responsive": {
+                "details": true
+            },
+            "columnDefs": [{
+                "className": "dt-center",
+                "targets": "_all"
+            }],
+            dom: 'Bfrtip',
+            ordering: true,
+            destroy: true,
+                        // "order": [
+                        //     [1, 'desc']
+                        // ],
+            buttons: ['pageLength', {
+                    text: 'Pending',
+                    className: 'pending',
+                },
+                {
+                    text: 'View All',
+                    className: 'viewall',
+                }
+            ],
+            language: {
+                searchPlaceholder: "Search..."
+            }
+        });
+    });
 </script>
-<?php
-
-include('../includes/footer.php');
-?>

@@ -66,7 +66,20 @@ $date=date('Y-m-d');
                         </label>
                     
                         <label class="form-label col-lg-3 col-md-6" for="wtype">Work type                   
-                            <input class="form-control" id="wtype" type="text" name="wtype" >
+                            <!-- <input class="form-control" id="wtype" type="text" name="wtype" > -->
+                            <select class="form-select" name="wtype" id="wtype">
+                                <option disabled selected value=""></option>
+                                <?php
+                                $sql="SELECT work_type from workdetail_master where isdelete='0' ";
+                                $run=sqlsrv_query($conn,$sql);
+                                while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
+                                    ?>
+                                    <option value="<?php echo $row['work_type'] ?>"><?php echo $row['work_type'] ?></option>
+                                    <?php
+                                }
+                                ?>
+                                
+                            </select>
                         </label>
     
                         <label class="form-label col-lg-3 col-md-6" for="agency">Agency
@@ -115,7 +128,8 @@ $date=date('Y-m-d');
                             </label>   -->
                                 <div class="col"></div>
                             <div class="col-auto">
-                                 <button type="submit" class="btn rounded-pill btn-success  mt-3" name="save" >Save</button>
+                                <a href="wdetails.php" class="btn rounded-pill btn-danger mt-3">Back</a>
+                                <button type="submit" class="btn rounded-pill btn-success  mt-3" name="save" >Save</button>
                             </div>                      
                         </div> 
                     </form>

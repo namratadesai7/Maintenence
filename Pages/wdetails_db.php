@@ -68,8 +68,9 @@ if(isset($_POST['srno'])){
     $sr=$_POST['srno'];
     $date=$_POST['date'];
     $sta=$_POST['addsta'];
+    $reason=$_POST['reason'];
 
-    $sql="INSERT INTO workdetailtail (Date,status,head_id,createdBy) VALUES('$date','$sta','$sr','".$_SESSION['empid']."')";
+    $sql="INSERT INTO workdetailtail (Date,status,reason,head_id,createdBy) VALUES('$date','$sta','$reason','$sr','".$_SESSION['empid']."')";
    // echo $sql;
     $run=sqlsrv_query($conn,$sql);
 
@@ -95,7 +96,7 @@ if(isset($_POST['savecomp'])){
        
         ?>
         <script>
-             alert("saved successfully");
+            //  alert("saved successfully");
             window.open('wdetails.php','_self');
         </script>
         <?php

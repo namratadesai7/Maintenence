@@ -48,7 +48,19 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
                         </label>
                     
                         <label class="form-label col-lg-3 col-md-6" for="wtype">Work type                   
-                            <input class="form-control" id="wtype" type="text" name="wtype" value="<?php echo $row['Work_type'] ?>"  >
+                            <!-- <input class="form-control" id="wtype" type="text" name="wtype" value="<?php echo $row['Work_type'] ?>"  > -->
+                            <select class="form-select" name="wtype" id="wtype">
+                                <?php
+                                $sql1="SELECT work_type from workdetail_master where isdelete='0' ";
+                                $run1=sqlsrv_query($conn,$sql1);
+                               while( $row1=sqlsrv_fetch_array($run1,SQLSRV_FETCH_ASSOC)){
+                                 ?>
+                                <option <?php if($row['Work_type']==$row1['work_type']){ ?> selected  <?php  } ?> > <?php echo $row1['work_type'] ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+
                         </label>
     
                         <label class="form-label col-lg-3 col-md-6" for="agency">Agency
@@ -85,7 +97,8 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
                          
                                 <div class="col"></div>
                             <div class="col-auto">
-                                 <button type="submit" class="btn rounded-pill btn-primary  mt-3" name="update" >Update</button>
+                                <a href="wdetails.php" class="btn rounded-pill btn-danger mt-3">Back</a>
+                                <button type="submit" class="btn rounded-pill btn-primary  mt-3" name="update" >Update</button>
                             </div>                      
                         </div> 
                     </form>

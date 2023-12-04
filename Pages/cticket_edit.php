@@ -69,10 +69,16 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
             
                     <label class="form-label col-lg-3 col-md-6" for="remark">Remark                   
                         <input class="form-control" id="remark" type="text" name="remark" value="<?php echo $row['remark'] ?>">
-                        </label>
+                    </label>
                        
                     <label class="form-label col-lg-3 col-md-6" for="priority">Priority
-                        <input class="form-control" id="priority" type="text" name="priority" value="<?php echo $row['priority'] ?>">
+                        <!-- <input class="form-control" id="priority" type="text" name="priority" value="<?php echo $row['priority'] ?>"> -->
+                        <select name="priority" id="priority" class="form-control mt-1">
+                            <option  value=""></option>
+                            <option <?php if($row['priority']=="low"){ ?> selected <?php } ?> value="low">Low</option>
+                            <option <?php if($row['priority']=="medium"){ ?> selected <?php } ?> value="medium">Medium</option>
+                            <option <?php if($row['priority']=="high"){ ?> selected <?php } ?> value="high">High</option>
+                        </select>
                     </label>
                 </div>
                 <div class="row ps-2">
@@ -85,6 +91,7 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
                     </label>   
                     <div class="col"></div>
                     <div class="col-auto">
+                           
                             <button type="submit" class="btn rounded-pill btn-success  mt-3" name="update" >Update</button>
                     </div>                      
                 </div> 

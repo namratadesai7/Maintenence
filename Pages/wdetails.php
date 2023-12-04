@@ -41,9 +41,16 @@ $date=date('Y-m-d');
 
         #wdetailtable th{
             white-space:nowrap;
+            padding : 8px 10px;
+            font-size: 15px;
         }
         #wdetailtable td{
             white-space:nowrap;
+            padding : 6px;
+            font-size: 15px;
+        }
+        table.dataTable{
+            border-collapse: collapse;
         }
         @media only screen and (max-width:2600px) {
             #wdetailtable {
@@ -57,14 +64,14 @@ $date=date('Y-m-d');
     <div class="container-fluid fl ">
         <div class="row mb-3">
             <div class="col">
-                <h4 class="pt-2 mb-0">User work Ticket</h4>
+                <h4 class="pt-2 mb-0">Work Details</h4>
             </div>
             <div class="col-auto">
                 <a href="wdetails_add.php"  class="btn rounded-pill common-btn mt-2 " name="add">Add</a>
             </div>
         </div>
         <div class="divCss">
-           <table class="table table-borderd text-center table-striped table-hover mb-0" id="wdetailtable">
+           <table class="table table-bordered table-sm text-center table-striped table-hover mb-0" id="wdetailtable">
             <thead>
                 <tr class="bg-secondary text-light">
                     <th>Sr</th>
@@ -73,15 +80,14 @@ $date=date('Y-m-d');
                     <th>Work Type </th>
                     <th>Agency</th>
                     <th>Remark</th>
-                    <th>First consideration date</th>
+                    <th>First consi. date</th>
                     <th>Name of first thinker</th>
                     <th>Start Date</th>
                     <th>End Date</th>
                     <th>Completed Date</th>
                     <th>Delay days </th> 
-                    <!-- <th>Responsible person </th> -->
-                    <th>Reason for being late</th>
-                    <th>Status1</th>
+                    <th>Responsible person </th>
+                    <!-- <th>Reason for being late</th> -->
                     <th>Status finally</th>
                     <th>Actions</th>
                    
@@ -90,18 +96,18 @@ $date=date('Y-m-d');
             <tbody> 
                 <?php
                     $sr=1;
-                    $sql="SELECT sr,Plant,Description,Work_type,Agency,Remark,fstcons_date,fst_thinker,startdate,format(enddate,'yyyy-MM-dd') as enddate,format(completed_date,'yyyy-MM-dd') as completed_date FROM workdetail";
+                    $sql="SELECT sr,Plant,Description,Work_type,Agency,Remark,fstcons_date,status_final,fst_thinker,startdate,responsible_person,enddate,format(completed_date,'dd-MM-yyyy') as completed_date,format(enddate,'yyyy-MM-dd') as caldat FROM workdetail  order by sr ASC";
                     $run=sqlsrv_query($conn,$sql);
                     while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
-                        if ($row['completed_date'] !== null) {
+                         if ($row['completed_date'] !== null || $row['startdate']->format('Y')=='1900' ) {
                             $difference = ''; // Set delay days to blank
-                        } else {
-                            // Calculate the difference in days
-                            $endDate = new DateTime($row['enddate']);
-                            $currentDate = new DateTime();
+                         } else {
+                             // Calculate the difference in days
+                             $endDate = new DateTime($row['caldat']);
+                             $currentDate = new DateTime();
                     
-                            $difference = $currentDate >= $endDate ? $currentDate->diff($endDate)->format("%a") : -($endDate->diff($currentDate)->format("%a"));
-                        }
+                             $difference = $currentDate >= $endDate ? $currentDate->diff($endDate)->format("%a") : -($endDate->diff($currentDate)->format("%a"));
+                         }
                 ?>
                 <tr>
                     <td><?php echo $sr;   ?></td>
@@ -110,19 +116,32 @@ $date=date('Y-m-d');
                     <td><?php echo $row['Work_type'] ?></td>
                     <td><?php echo $row['Agency'] ?></td>
                     <td><?php echo $row['Remark'] ?></td>
-                    <td><?php echo $row['fstcons_date']->format('Y-m-d') ?></td>
+                    <td><?php echo $row['fstcons_date']->format('d-m-Y') ?></td>
                     <td><?php echo $row['fst_thinker'] ?></td>
-                    <td><?php echo $row['startdate']->format('Y-m-d') ?></td>
-                    <td><?php echo $row['enddate']?></td>
+                    <?php
+                        if( $row['startdate']->format('Y')=='1900')
+                {
+                    ?>
+                        <td></td>
+                        <td></td>
+
+                    <?php
+                }  else{
+                ?>
+                    <td><?php echo $row['startdate']->format('d-m-Y') ?></td>
+                    <td><?php echo $row['enddate']->format('d-m-Y') ?></td>
+
+                <?php
+                }   ?>
+                                
                     <td><?php echo $row['completed_date']  ?></td>
                     <td><?php  echo $difference  ?></td> 
-                    <!-- <td></td> -->
-                    <td></td>
-                    <td><?php echo "status" ?></td>
-                    <td><?php echo "stafinal" ?></td>
+                     <td><?php echo $row['responsible_person'] ?></td> 
+                
+                    <td><?php echo $row['status_final'] ?></td>
                     <td><button type="button" class="btn btn-sm rounded-pill btn-primary edit" id="<?php echo $row['sr']  ?>" >Edit</button>
                         <button type="button" class="btn btn-sm rounded-pill btn-success update" id="<?php echo $row['sr']   ?>" >Followup</button>
-                        <button type="button" class="btn btn-sm rounded-pill btn-success complete" id="<?php echo $row['sr']   ?>" >Completed</button>
+                        <button type="button" class="btn btn-sm rounded-pill btn-warning complete" id="<?php echo $row['sr']   ?>" >Completed</button>
                         <!-- <button type="button" class="btn btn-sm rounded-pill btn-danger delete" id="<?php echo $row['sr']  ?>">Delete</button> -->
                     </td>
                 <?php
@@ -157,9 +176,9 @@ $date=date('Y-m-d');
             </div>
             <!-- complete modal -->
             <div class="modal fade" id="compmodal" tabindex="-1" aria-labelledby="compmodal" aria-hidden="true">
-                <div class="modal-dialog modal-xl">
+                <div class="modal-dialog ">
                     <div class="modal-content">
-                        <div class="modal-header modal-xl">
+                        <div class="modal-header ">
                             <h5 class="modal-title">Add completed date</h5> 
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
@@ -193,7 +212,7 @@ $date=date('Y-m-d');
       dom: 'Bfrtip',
       ordering: true,
       destroy: true,
-      "order": [[1, 'desc']],
+    //   "order": [[1, 'desc']],
       buttons: ['pageLength', {
         text: 'Pending', className: 'pending',
       },
@@ -252,7 +271,7 @@ $date=date('Y-m-d');
 
                 success:function(response){
                    
-                  alert(response);
+                //   alert(response);
                   $.ajax({
                     url:'wdetails_modal.php',
                     type: 'post',

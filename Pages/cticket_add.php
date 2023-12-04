@@ -66,11 +66,11 @@ $date=date('Y-m-d');
                         </label>
                     
                         <label class="form-label col-lg-3 col-md-6" for="mcno">M/c No                     
-                            <input class="form-control" id="mcno" type="number" name="mcno" value="">
+                            <input class="form-control" id="mcno" type="text" name="mcno" onFocus="Searchmc(this)" >
                         </label>
     
                         <label class="form-label col-lg-3 col-md-6" for="dept">Department
-                            <input class="form-control" id="dept" type="text" name="dept" value="">
+                            <input class="form-control" id="dept" type="text" name="dept"  >
                         </label>    
                  
                         <label class="form-label col-lg-3 col-md-6" for="plant">Plant                    
@@ -92,7 +92,13 @@ $date=date('Y-m-d');
                             </label>
                       
                         <label class="form-label col-lg-3 col-md-6" for="priority">Priority
-                            <input class="form-control" id="priority" type="text" name="priority" value="">
+                            <!-- <input class="form-control" id="priority" type="text" name="priority" value=""> -->
+                            <select name="priority" id="priority" class="form-control mt-1">
+                                <option value=""></option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
                         </label>
 
                         <div class="row ps-2">
@@ -108,14 +114,65 @@ $date=date('Y-m-d');
                                  <button type="submit" class="btn rounded-pill btn-success  mt-3" name="save" >Save</button>
                             </div>                      
                         </div> 
-        </form>
-        </div>
-    </div>
-</body>
+                    </form>
+                </div>
+            </div>
+        </body>
 </html>
 
 <script>
   $('#cticket').addClass('active');
+
+  function Searchmc(txtBoxRef) {
+      
+      var f = true; //check if enter is detected
+    $(txtBoxRef).keypress(function (e) {
+        if (e.keyCode == '13' || e.which == '13'){
+            f = false;
+        }
+    });
+       $(txtBoxRef).autocomplete({      
+        source: function( request, response ){
+               $.ajax({
+                 url: "cticketget_data.php",
+                  type: 'post',
+                  dataType: "json",
+                  data: {mcno: request.term },
+                  success: function( data ) {
+                    response( data );
+                },
+                error:function(data){
+                    console.log(data);
+                }
+              });
+        },
+        select: function (event, ui) {
+               $('#mcno').val(ui.item.label);
+               return false;
+          },
+          change: function (event, ui) {
+              if (f){
+                  if (ui.item == null){
+                    $(this).val('');
+                    $(this).focus();
+                  }
+            }
+        }
+      });
+}
+$(document).on('change','#mcno',function(){
+   
+    var mc_no=$(this).val();
+    $.ajax({
+        url:'cticketget_data.php',
+        type:'post',
+        data:{mc_no,mc_no},
+        success:function(data){
+         
+            $('#dept').val(data);
+        }
+    })
+})
 </script>
 <?php
 
