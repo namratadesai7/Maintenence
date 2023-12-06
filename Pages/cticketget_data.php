@@ -10,8 +10,8 @@ if (isset($_POST['mcno'])) {
 	}
 	echo json_encode($response);
 }
-
-if (isset($_POST['mc_no'])) {
+/*----------------------- code for get sept-----------------------*/
+if (!empty($_POST['mc_no'])) {
     $ii = $_POST['mc_no'];
     $query = "SELECT dept FROM machine_master where machine='$ii' ";
 	$run = sqlsrv_query($conn,$query);
@@ -19,6 +19,18 @@ if (isset($_POST['mc_no'])) {
 
 
 	echo($row['dept']);
+}
+
+if (isset($_POST['aname'])) {
+    $ii = $_POST['aname'];
+    $query = "SELECT sortname  FROM [Workbook].[dbo].[user] where sortname LIKE '$ii%' ";
+	$run = sqlsrv_query($conn,$query);
+	while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
+		$response[] = array("label"=>$row['sortname']);
+	}
+
+
+	echo json_encode($response);
 }
 
 

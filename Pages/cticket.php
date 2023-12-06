@@ -139,7 +139,7 @@ $date=date('Y-m-d');
       dom: 'Bfrtip',
       ordering: true,
       destroy: true,
-      "order": [[1, 'desc']],
+    //   "order": [[1, 'desc']],
       buttons: ['pageLength', {
         text: 'Pending', className: 'pending',
       },

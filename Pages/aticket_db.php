@@ -3,23 +3,38 @@ include('../includes/dbcon.php');
 session_start();
 
 if(isset($_POST['save'])){
+
+    //from ticket
+    $mcno=$_POST['mcno'];
+    $dept=$_POST['dept'];
+    $plant=$_POST['plant'];
+    $issue=$_POST['issue'];
+    $pstop=$_POST['pstop'];
+    // $priority=$_POST['priority'];
+
+    //from assign
     $sr=$_POST['sr'];
     $assignby=$_POST['assignby'];
     $assign_to=$_POST['assign_to'];
     $approx_time=$_POST['approx_time'];
     $unit=$_POST['unit'];
-    $priority=$_POST['priority'];
+    $prioritya=$_POST['prioritya'];
     $cat=$_POST['cat'];
     $subcat=$_POST['subcat'];
     $role=$_POST['role'];
     $updatefrom=$_POST['updatefrom'];
+
+    $sql1="UPDATE ticket SET mcno='$mcno',department='$dept',plant='$plant',issue='$issue',priority='$prioritya',pstop='$pstop',updatedBy='".$_SESSION['empid']."'
+    ,updatedAt='".date('Y-m-d')."' where srno='$sr'";
+    $run1=sqlsrv_query($conn,$sql1);
    
     $sql="INSERT INTO assign (ticket_id,prev_ticket_id,assign_to,assign_date,approx_time,unit,update_assign,cat,subcat,role,priority,createdBy)
-    VALUES('$sr','0','$assign_to','".date('Y-m-d')."','$approx_time','$unit','$updatefrom','$cat','$subcat','$role','$priority','".$_SESSION['uname']."')";
+    VALUES('$sr','0','$assign_to','".date('Y-m-d')."','$approx_time','$unit','$updatefrom','$cat','$subcat','$role','$prioritya','".$_SESSION['uname']."')";
     $run=sqlsrv_query($conn,$sql);
-   
+   echo $sql;
+   echo $sql1;
  
-    if($run){
+    if($run && $run1){
         ?>
         <script>
            window.open('aticket.php','_self');

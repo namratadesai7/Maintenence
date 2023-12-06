@@ -46,23 +46,22 @@ $date=date('Y-m-d');
     </style>
 </head>
 <body>
-    <div class="container-fluid fl">
-        <div class="row mb-3">
-            <div class="col">
-                <h4 class="pt-2 mb-0">Create Ticket</h4>
+        <div class="container-fluid fl">
+            <div class="row mb-3">
+                <div class="col">
+                    <h4 class="pt-2 mb-0">Create Ticket</h4>
+                </div>
             </div>
-        </div>
-        <div class="divCss">
-            <form action="cticket_db.php" method="post">
-           
-            <div class="row px-2">
+            <div class="divCss">
+                <form action="cticket_db.php" method="post">          
+                    <div class="row px-2">
                    
                         <label class="form-label col-lg-3 col-md-6" for="date">Date  
                             <input class="form-control" id="date" type="date" name="date" value="<?php echo $date ?>">              
                         </label>
                 
                         <label class="form-label col-lg-3 col-md-6" for="user">User                    
-                            <input class="form-control" id="user" type="text" name="user"  value="<?php echo $_SESSION['uname']    ?>">
+                            <input class="form-control" id="user" type="text" name="user"  value="<?php echo $_SESSION['uname']  ?>">
                         </label>
                     
                         <label class="form-label col-lg-3 col-md-6" for="mcno">M/c No                     
@@ -90,34 +89,60 @@ $date=date('Y-m-d');
                         <label class="form-label col-lg-3 col-md-6" for="remark">Remark                   
                             <input class="form-control" id="remark" type="text" name="remark" value="">
                             </label>
-                      
-                        <label class="form-label col-lg-3 col-md-6" for="priority">Priority
+                        <!--                       
+                        <label class="form-label col-lg-3 col-md-6" for="priority">Priority -->
                             <!-- <input class="form-control" id="priority" type="text" name="priority" value=""> -->
-                            <select name="priority" id="priority" class="form-control mt-1">
+                            <!-- <select name="priority" id="priority" class="form-control mt-1">
                                 <option value=""></option>
                                 <option value="low">Low</option>
                                 <option value="medium">Medium</option>
                                 <option value="high">High</option>
                             </select>
-                        </label>
-
-                        <div class="row ps-2">
-                            <label class="form-label col-lg-3 col-md-6" for="pstop">Production Stopped?
+                        </label> -->
+                     
+                        <label class="form-label col-lg-3 col-md-6" for="pstop">Production Stopped?
                                 <select class="form-select" name="pstop" id="pstop">
                                     <option value=""></option>
                                     <option value="yes">Yes</option>
                                     <option value="no">No</option>
                                 </select>
                             </label>   
+
+                    </div> 
+
+                    <div class="row ps-2 mt-2">
+                            <label  class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
+                                    <br>
+                                    <input class="form-check-input" type="radio" name="priority" value="low" id="flexRadioDefault1">
+                                    <label class="form-check-label" for="flexRadioDefault1">
+                                        Low
+                                    </label>
+                        
+                               
+                                    <input class="form-check-input" type="radio" name="priority" value="medium" id="flexRadioDefault2" checked>
+                                    <label class="form-check-label" for="flexRadioDefault2">
+                                        Medium
+                                    </label>
+                        
+                               
+                                    <input class="form-check-input" type="radio" name="priority" value="high" id="flexRadioDefault3" >
+                                    <label class="form-check-label" for="flexRadioDefault3">
+                                        High
+                                    </label>
+                        
+                            </label>
+                        
                             <div class="col"></div>
-                            <div class="col-auto">
-                                 <button type="submit" class="btn rounded-pill btn-success  mt-3" name="save" >Save</button>
+                            <div class="col-auto mt-2">
+                                <a href="cticket.php" type="button" class="btn rounded-pill btn-danger mt-3">Back</a>
+                                <button type="submit" class="btn rounded-pill btn-success  mt-3" name="save" >Save</button>                             
                             </div>                      
-                        </div> 
-                    </form>
-                </div>
+                    </div> 
+                             
+                </form>
             </div>
-        </body>
+        </div>
+    </body>
 </html>
 
 <script>
@@ -163,15 +188,33 @@ $date=date('Y-m-d');
 $(document).on('change','#mcno',function(){
    
     var mc_no=$(this).val();
-    $.ajax({
+    console.log(mc_no)
+    if(mc_no === null || mc_no === ''){
+        //document.getElementById('dept').setAttribute('readonly', true);
+        $.ajax({
         url:'cticketget_data.php',
         type:'post',
         data:{mc_no,mc_no},
         success:function(data){
          
             $('#dept').val(data);
+            $('#dept').prop("readonly", false);
         }
     })
+    
+    }else{
+        $.ajax({
+        url:'cticketget_data.php',
+        type:'post',
+        data:{mc_no,mc_no},
+        success:function(data){
+         
+            $('#dept').val(data);
+            $('#dept').prop("readonly", true);
+        }
+    })
+}
+   
 })
 </script>
 <?php

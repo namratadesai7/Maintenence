@@ -87,15 +87,27 @@ $run = sqlsrv_query($conn, $sql);
                      $sr=1;
                      while($row= sqlsrv_fetch_array($run, SQLSRV_FETCH_ASSOC)) {
                      
-                        $sql1 = "SELECT assign_to,format(assign_date,'yyyy-MM-dd') as adate,approx_time,unit,update_assign,cat,subcat,role from assign where ticket_id=".$row['srno']." ";
+                        $sql1 = "SELECT assign_to,format(assign_date,'yyyy-MM-dd') as adate,approx_time,unit,update_assign,cat,subcat,role from assign where ticket_id=".$row['srno']." and isdelete=0 ";
                         $run1 = sqlsrv_query($conn, $sql1);
                         $row1 = sqlsrv_fetch_array($run1, SQLSRV_FETCH_ASSOC);
+                        $at=$row1['assign_to'] ?? '' ;
                     ?>
                         <tr>
                             <td><?php echo $sr ?></td>
                             <td> <?php echo $row['priority'] ?></td>
                             <td> <?php echo $row['pstop'] ?></td>
-                            <td>Open</td>
+                            <?php
+                                  if($at== ''){ 
+                            ?>
+                                    <td>Unassigned</td>
+                            <?php
+                                  }else{
+                                    ?>
+                                    <td>Open</td>
+                                    <?php
+                                  }
+                            ?>
+                            
                             <td> <?php echo $row['date']->format('d-m-Y') ?></td>
                             <td> <?php echo $row['username'] ?></td>
                             <td> <?php echo $row['mcno'] ?></td>
@@ -114,10 +126,11 @@ $run = sqlsrv_query($conn, $sql);
                             <td> 
                                 <a type="button" class="btn btn-primary btn-sm me-1 edit"
                                 id="<?php echo $row['srno']   ?>">Edit</a>
-                                <!-- <a type="button" class="btn btn-success btn-sm me-1 assign assign-button"
-                                id="<?php echo $row['srno'] ?>"  onclick="setClickedRowId(<?php echo $row['srno'] ?>)" >Assign</a> -->
-                                <a type="button" class="btn btn-success btn-sm me-1 assign assign-button" id="<?php echo $row['srno'] ?>"
-                                                                >Assign</a>
+                               
+                                <?php
+                                 if($at== ''){ ?>
+                                    <a type="button" class="btn btn-success btn-sm me-1 assign assign-button" id="<?php echo $row['srno'] ?>" >Assign</a> 
+                                    <?php } ?>
                                 <a type="button" class="btn btn-danger btn-sm" 
                                 href="aticket_db.php?deleteid=<?php echo $row['srno']?>" 
                                 onclick="return confirm('Are you sure you want to delete the ticket? Once you click ok it will be removed from the below table?')" name="delete">Cancel</a>
@@ -174,7 +187,6 @@ $run = sqlsrv_query($conn, $sql);
 </div>
 <script>
     $('#aticket').addClass('active');
-
         
     $(document).on('click', '.assign', function() {
         
@@ -212,21 +224,49 @@ $run = sqlsrv_query($conn, $sql);
         });
     });
     
-    // function saveAndDisable() {
-    // console.log('Clicked Row ID for Disable:', clickedRowId);
-
-    // // Your existing JavaScript code to disable the Assign button for the clicked row
-    // $('.assign-button').each(function () {
-    //     var rowId = $(this).data('row-id');
-    //     if (rowId == clickedRowId) {
-    //         $(this).prop('disabled', true);
-    //         console.log('Disabled Assign button for Row ID:', clickedRowId);
-    //     }
-    // });
-
-    // Close the modal if needed
-    // $('#myModal').modal('hide');
-//}
+    function Searchname(txtBoxRef) {
+      
+      var f = true; //check if enter is detected
+        $(txtBoxRef).keypress(function (e) {
+            if (e.keyCode == '13' || e.which == '13'){
+                f = false;
+            }
+        });
+        $(txtBoxRef).autocomplete({      
+            source: function( request, response ){
+                $.ajax({
+                    url: "cticketget_data.php",
+                    type: 'post',
+                    dataType: "json",
+                    data: {aname: request.term },
+                    success: function( data ) {
+                        response( data );
+                    },
+                    error:function(data){
+                        console.log(data);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                $('#assign_to').val(ui.item.label);
+                return false;
+            },
+            change: function (event, ui) {
+                if(f){
+                    if (ui.item == null){
+                        $(this).val('');
+                        $(this).focus();
+                    }
+                }
+            },
+            open: function () {
+            // Set a higher z-index for the Autocomplete dropdown
+            $('.ui-autocomplete').css('z-index',1500);
+           }
+          });
+        } 
+  
+    // datatable to table
     $(document).ready(function() {
         $('#assignTable').DataTable({
             "processing": true,
@@ -241,9 +281,9 @@ $run = sqlsrv_query($conn, $sql);
             dom: 'Bfrtip',
             ordering: true,
             destroy: true,
-                        // "order": [
-                        //     [1, 'desc']
-                        // ],
+            "order": [
+                [1, 'desc']
+            ],
             buttons: ['pageLength', {
                     text: 'Pending',
                     className: 'pending',
