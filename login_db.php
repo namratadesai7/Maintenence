@@ -14,8 +14,9 @@ if(isset($_POST['login'])){
         $_SESSION['Sr']=$row['user_id'];
         $_SESSION['empid']=$row['employee_id'];
         $_SESSION['uname']=$row['user_name'];
-        $_SESSION['sname']=$row['sortname'];
+        $_SESSION['sname']=$row['sortname1'];
         $_SESSION['password']=$row['password'];
+        $_SESSION['urights']=$row['User_Rights'];
      
         ?>
         <script>

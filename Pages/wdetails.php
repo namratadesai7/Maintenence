@@ -45,7 +45,7 @@ $date=date('Y-m-d');
             font-size: 15px;
         }
         #wdetailtable td{
-            white-space:nowrap;
+            white-space: nowrap;
             padding : 6px;
             font-size: 15px;
         }
@@ -59,6 +59,11 @@ $date=date('Y-m-d');
             float: none !important;
             }
         }
+        #re{
+            white-space: pre-line !important;
+            width: 250px !important;
+        }
+        
     </style>
   <title>User Work Ticket</title>
     <div class="container-fluid fl ">
@@ -79,7 +84,7 @@ $date=date('Y-m-d');
                     <th>Description</th>
                     <th>Work Type </th>
                     <th>Agency</th>
-                    <th>Remark</th>
+                    <th style="padding:8px 100px;"  >Remark</th>
                     <th>First consi. date</th>
                     <th>Name of first thinker</th>
                     <th>Start Date</th>
@@ -96,12 +101,13 @@ $date=date('Y-m-d');
             <tbody> 
                 <?php
                     $sr=1;
-                    $sql="SELECT sr,Plant,Description,Work_type,Agency,Remark,fstcons_date,status_final,fst_thinker,startdate,responsible_person,enddate,format(completed_date,'dd-MM-yyyy') as completed_date,format(enddate,'yyyy-MM-dd') as caldat FROM workdetail  order by sr ASC";
+                    $sql="SELECT sr,Plant,Description,Work_type,Agency,Remark,format(fstcons_date,'dd-MM-yyyy')as fdate,status_final,fst_thinker,format(startdate,'dd-MM-yyyy') as sdate,responsible_person,format(completed_date,'dd-MM-yyyy') as completed_date,format(enddate,'yyyy-MM-dd') as caldat ,
+                    format(enddate,'dd-MM-yyyy') as caldate FROM workdetail  order by sr ASC";
                     $run=sqlsrv_query($conn,$sql);
                     while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
-                         if ($row['completed_date'] !== null || $row['startdate']->format('Y')=='1900' ) {
+                         if($row['completed_date'] !== null || $row['sdate']=='01-01-1900' ) {
                             $difference = ''; // Set delay days to blank
-                         } else {
+                         }else {
                              // Calculate the difference in days
                              $endDate = new DateTime($row['caldat']);
                              $currentDate = new DateTime();
@@ -115,11 +121,11 @@ $date=date('Y-m-d');
                     <td><?php echo $row['Description'] ?></td>
                     <td><?php echo $row['Work_type'] ?></td>
                     <td><?php echo $row['Agency'] ?></td>
-                    <td><?php echo $row['Remark'] ?></td>
-                    <td><?php echo $row['fstcons_date']->format('d-m-Y') ?></td>
+                    <td id="re"><?php echo $row['Remark'] ?></td>
+                    <td><?php echo $row['fdate'] ?></td>
                     <td><?php echo $row['fst_thinker'] ?></td>
                     <?php
-                        if( $row['startdate']->format('Y')=='1900')
+                        if( $row['sdate']=='01-01-1900')
                 {
                     ?>
                         <td></td>
@@ -128,8 +134,8 @@ $date=date('Y-m-d');
                     <?php
                 }  else{
                 ?>
-                    <td><?php echo $row['startdate']->format('d-m-Y') ?></td>
-                    <td><?php echo $row['enddate']->format('d-m-Y') ?></td>
+                    <td><?php echo $row['sdate']?></td>
+                    <td><?php echo $row['caldate']?></td>
 
                 <?php
                 }   ?>
@@ -213,12 +219,9 @@ $date=date('Y-m-d');
       ordering: true,
       destroy: true,
     //   "order": [[1, 'desc']],
-      buttons: ['pageLength', {
-        text: 'Pending', className: 'pending',
-      },
-        {
-          text: 'View All', className: 'viewall',
-        }],
+    buttons: [
+		 		'pageLength','copy', 'excel'
+        	],
       language: {
         searchPlaceholder: "Search..."
       }
@@ -261,7 +264,7 @@ $date=date('Y-m-d');
     });
 
     $(document).on('click','.add',function(){
-            console.log("sds");
+          
             var sr = $(this).attr('id'); 
          
             $.ajax({

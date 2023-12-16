@@ -23,15 +23,16 @@ if (!empty($_POST['mc_no'])) {
 
 if (isset($_POST['aname'])) {
     $ii = $_POST['aname'];
-    $query = "SELECT sortname  FROM [Workbook].[dbo].[user] where sortname LIKE '$ii%' ";
+    $query = "SELECT sortname1  FROM [Workbook].[dbo].[user] where sortname1 LIKE '$ii%' ";
 	$run = sqlsrv_query($conn,$query);
 	while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
-		$response[] = array("label"=>$row['sortname']);
+		$response[] = array("label"=>$row['sortname1']);
 	}
 
 
 	echo json_encode($response);
 }
+
 
 
 ?>

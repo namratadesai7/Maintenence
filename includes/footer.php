@@ -5,6 +5,23 @@
         if(id<3000){
             $('.hide').hide();
         }
+        else{
+            var rights=$('#rights').val();
+            if(rights=='user'){
+                $('#aticket').hide();
+                $('#uwticket').hide();
+            }
+            else if(rights=='assign'){
+                $('#cticket').hide();
+                $('#uwticket').hide();
+
+            }else if(rights=='team'){
+                $('#cticket').hide();
+                $('#aticket').hide();
+
+
+            }
+        }
     });
 
 

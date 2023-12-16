@@ -2,6 +2,7 @@
 include('../includes/dbcon.php');
 session_start();
 if(isset($_POST['save'])){
+  $cstatus=$_POST['cstatus'];
   //head
   $tid=$_POST['cticket'] ?? '';
   $aid=$_POST['aticket'] ?? '';
@@ -23,12 +24,20 @@ if(isset($_POST['save'])){
   $run1 =sqlsrv_query($conn,$sql1);
   $row1=sqlsrv_fetch_array($run1,SQLSRV_FETCH_ASSOC);
   $count=$row1['num']+1;
+
+
+  if($cstatus=='transfer'){
+    $sql="INSERT INTO uwticket_head (ticketid,assignid,c_date,resolved_time,unit,no_of_parts,remark,approx_cdate,createdBy,istransfer)
+    VALUES('$tid','$aid','$cdate','$resolved_time','$unit','$noparts','$rem','$approxdate','".$_SESSION['uname']."',1) ";
+   $run=sqlsrv_query($conn,$sql);
+    
+  }else{
   
-
-  $sql="INSERT INTO uwticket_head (ticketid,assignid,c_date,resolved_time,unit,no_of_parts,remark,approx_cdate,createdBy)
-   VALUES('$tid','$aid','$cdate','$resolved_time','$unit','$noparts','$rem','$approxdate','".$_SESSION['uname']."') ";
+  
+  $sql="INSERT INTO uwticket_head (ticketid,assignid,c_date,resolved_time,unit,no_of_parts,remark,approx_cdate,createdBy,istransfer)
+   VALUES('$tid','$aid','$cdate','$resolved_time','$unit','$noparts','$rem','$approxdate','".$_SESSION['uname']."',0) ";
   $run=sqlsrv_query($conn,$sql);
-
+  }
   if($partschange=='yes'){
 
     foreach($name as $key => $value){
@@ -40,10 +49,9 @@ if(isset($_POST['save'])){
       $run2=true;
 
     }
-    if($run && $run2){
+    if($run && $run2 && $run1){
       ?>
       <script>
-        
           window.open('uwticket.php','_self');
       </script>
       <?php

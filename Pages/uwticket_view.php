@@ -1,22 +1,7 @@
-
-<?php
+<?php  
 include('../includes/dbcon.php');
-include('../includes/header.php');  
-$sname=$_SESSION['sname'];
+session_start();
 
-$date=date('Y-m-d');
-// $sql="SELECT * FROM assign where assign_to='". $_SESSION['sname']."' and isdelete=0";
-// $sql="SELECT a.srno,a.priority,t.pstop,t.date as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,a.assign_date,a.approx_time,a.unit,a.update_assign,
-// a.subcat, a.role ,u.resolved_time,u.no_of_parts,u.remark as uremark
-// from assign a inner join ticket t on t.srno=a.ticket_id 
-//             inner join uwticket_head u on t.srno=u.ticketid
-//             where a.assign_to='Sumit' and a.isdelete=0";
-            
-// $sql="SELECT a.istransfer,a.srno,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
-// a.assign_date,a.approx_time,a.unit,a.update_assign,
-// a.subcat, a.role    
-// from assign a inner join ticket t on t.srno=a.ticket_id 
-//             where a.assign_to='Sumit' and a.isdelete=0 and  a.istransfer=0";
 $condition='';
 if( $_SESSION['urights']!="admin"){
 
@@ -27,91 +12,13 @@ a.assign_date,a.approx_time,a.unit,a.update_assign,
 a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark,u.ticketid
 
 FROM assign a full outer join ticket t on a.ticket_id=t.srno
-full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and (u.istransfer=0 or u.istransfer is null) and assign_to is not null and c_date is null".$condition;
+full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and (u.istransfer=0 or u.istransfer is null) and assign_to is not null".$condition;
 
 $run=sqlsrv_query($conn,$sql);
 
+
 ?>
-
-    <style>
-        .divCss {
-        background-color: white;
-        padding: 20px;
-        border-radius: 5px;
-        box-shadow: 0 1rem 2rem rgba(132, 139, 200, 0.18);
-        }
-        .fl{
-            margin-top:2rem;
-        }
-        .abc{
-            margin:20px;
-            padding-top:20px;
-            /* padding-bottom:20px;
-            padding-left:250px !important;     */
-            text-align:center;
-                }
-        /* .col{
-            text-align:center;
-        } */
-        #uwtickettable .form-control{
-            width:40%;
-        }
-        #uwtickettable .form-select{
-            width:40%;
-        }
-        #patchange input{
-            border:none;
-            outline:none;
-            background:transparent;
-            text-align:center;
-        }
-        .viewall {
-        background: #7DE5F6 !important;
-    }
-        .btn1{
-            /* margin-top:10px;
-            padding-left:40%;
-            padding-right:40%;
-            width:100%; */
-            /* align-items:center;
-            padding-top:40px;
-            padding-left:350px;
-         */
-         text-align:center;
-         margin-top:40px;
-        }
-
-        #uwtickettable th{
-            white-space:nowrap;
-            font-size: 15px;
-            padding: 8px 15px 8px 8px;
-        }
-        #uwtickettable td{
-            white-space:nowrap;
-            font-size: 14px;
-            padding-left: 6px;
-            font-weight:500;
-        }
-        @media only screen and (max-width:2600px) {
-            #uwtickettable {
-            display: block;
-            overflow-x: auto;
-            float: none !important;
-            }
-        }
-    </style>
-  <title>User Work Ticket</title>
-    <div class="container-fluid fl ">
-        <div class="row mb-3">
-            <div class="col">
-                <h4 class="pt-2 mb-0">User work Ticket</h4>
-            </div>
-                <!-- <div class="col-auto">
-                    <a href="cticket_add.php"  class="btn rounded-pill common-btn mt-2 " name="add">Add</a>
-                </div> -->
-        </div>
-        <div id="putTable" class="divCss">
-           <table class="table  table-bordered text-center table-striped table-hover mb-0" id="uwtickettable">
+  <table class="table  table-bordered text-center table-striped table-hover mb-0" id="uwtickettable">
             <thead>
                 <tr class="bg-secondary text-light">
                     <th>Sr</th>
@@ -245,118 +152,76 @@ $run=sqlsrv_query($conn,$sql);
                 </tr>
             </tbody>
            </table>
-        </div>
-        <div id="spinLoader"></div>
-    </div>
-  
-     <!-- modal for action -->
-     <div class="modal fade" id="uwticketmodal" tabindex="-1" aria-labelledby="uwticketmodal" aria-hidden="true">
-        <div class="modal-dialog modal-xl ">
-            <div class="modal-content">
-                <div class="modal-header ">
-                    <h5 class="modal-title">Add User work detail</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form action="uwticket_db.php" method="post" id="uwticketform">
-
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn rounded-pill bg-secondary text-light"
-                        data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn rounded-pill common-btn save" name="save"
-                        form="uwticketform" >Save</button>
-                </div>
-            </div>
-        </div>
-    </div>    
-<script>
-  $('#uwticket').addClass('active');
-
-    $(document).on('click', '.close', function() {
-        
-        var tid = $(this).attr('id');
-        var aid = $(this).data('name');
-        
-        $.ajax({
-            url: 'uwticket_modal.php',
-            type: 'post',
-            data: {
-                tid:tid,aid:aid
-            },
-            // dataType: 'json',
-            success: function(data) {
-                $('#uwticketform').html(data);
-                $('#uwticketmodal').modal('show');
-
-
+           <script>
+              function Searchname(txtBoxRef) {
+      
+      var f = true; //check if enter is detected
+        $(txtBoxRef).keypress(function (e) {
+            if (e.keyCode == '13' || e.which == '13'){
+                f = false;
             }
         });
-
-    });
-    
-    $(document).on('change', '#cstatus', function() {
-            var sta= $(this).val();
-           
-            $.ajax({
-                url: 'uwticket_get.php',
-                type: 'post',
-                data: {sta:sta
-                    
-                },
-                // dataType: 'json',
-                success: function(data) {
-                    $('#delaydata').html(data);
-                    // $('#uwticketmodal').modal('show');
+        $(txtBoxRef).autocomplete({      
+            source: function( request, response ){
+                $.ajax({
+                    url: "cticketget_data.php",
+                    type: 'post',
+                    dataType: "json",
+                    data: {aname: request.term },
+                    success: function( data ) {
+                        response( data );
+                    },
+                    error:function(data){
+                        console.log(data);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                $('#assign_to').val(ui.item.label);
+                return false;
+            },
+            change: function (event, ui) {
+                if(f){
+                    if (ui.item == null){
+                        $(this).val('');
+                        $(this).focus();
+                    }
                 }
-    });
-
-
-    });
-    $(document).on('input', '#numberOfParts', function() {
-            var no= $(this).val();
-            console.log(no);
-
-            $.ajax({
-                url: 'uwticket_get.php',
-                type: 'post',
-                data: {no:no
-                    
-                },
-                // dataType: 'json',
-                success: function(data) {
-                    $('#partchange').html(data);
-                    // $('#uwticketmodal').modal('show');
-                }
-    });
-
-    });
+            },
+            open: function () {
+            // Set a higher z-index for the Autocomplete dropdown
+            $('.ui-autocomplete').css('z-index',1500);
+           }
+          });
+        } 
   
-    $(document).ready(function () {
+     
+    // datatable to table
+    $(document).ready(function() {
         $('#uwtickettable').DataTable({
-        "processing": true,
-        "lengthMenu": [10, 25, 50, 75, 100],
-        "responsive": {
-            "details": true
-        },
-        "columnDefs": [
-            { "className": "dt-center", "targets": "_all" }
-        ],
-        dom: 'Bfrtip',
-        ordering: true,
-        destroy: true,
-        //   "order": [[1, 'desc']],
-        buttons: [
+            "processing": true,
+            "lengthMenu": [10, 25, 50, 75, 100],
+            "responsive": {
+                "details": true
+            },
+            "columnDefs": [{
+                "className": "dt-center",
+                "targets": "_all"
+            }],
+            dom: 'Bfrtip',
+            ordering: true,
+            destroy: true,
+          
+            buttons: [
 		 		'pageLength','copy', 'excel',
-                 {
+                {
                     text:'ViewAll', className:'viewall',
                     action:function(){
                         $('#spinLoader').html('<span class="spinner-border spinner-border-lg mx-2"></span><p>Loading..</p>');
                         $('#putTable').css({"opacity":"0.5"});
 
                         $.ajax({
-                            url:'uwticket_view.php',
+                            url:'aticket_view.php',
                             type:'post',
                             data:{ },
                             success:function(data){
@@ -368,14 +233,9 @@ $run=sqlsrv_query($conn,$sql);
                     }
                 },
         	],
-        language: {
-            searchPlaceholder: "Search..."
-        }
+            language: {
+                searchPlaceholder: "Search..."
+            }
         });
     });
-</script>
-<?php
-
-include('../includes/footer.php');
-?>
-
+           </script>

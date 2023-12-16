@@ -1,284 +1,191 @@
 <?php
 include('../includes/dbcon.php');
-$pageTitle = "Assign Ticket";
-include('../includes/header.php');
+if(isset($_POST['user']) || isset($_POST['assignto']) ||isset($_POST['pending']) || isset($_POST['cfrom']) || isset($_POST['cto']) || isset($_POST['afrom']) || isset($_POST['ato']) || isset($_POST['clfrom']) || isset($_POST['clto'])){
+$user=$_POST['user'];
+$assignto=$_POST['assignto'];
+$pending=$_POST['pending'];
+$cfrom=$_POST['cfrom'];
+$cto=$_POST['cto'];
+$afrom=$_POST['afrom'];
+$ato=$_POST['ato'];
+$clfrom=$_POST['clfrom'];
+$clto=$_POST['clto'];
 
-$sql = "SELECT * from [maintenance].[dbo].[ticket]";
-$query = sqlsrv_query($conn, $sql);
-$row = sqlsrv_fetch_array($query, SQLSRV_FETCH_ASSOC);
+$condition="";
 
-$sql1 = "SELECT * from [maintenance].[dbo].[assign]";
-$query1 = sqlsrv_query($conn, $sql1);
+if(!empty($user)){
+  $condition.=" AND t.username='$user'";
+}
+if(!empty($cfrom) && !empty($cto)){
+  $condition.=" and t.date between '$cfrom' and '$cto' ";
+}
+if(!empty($afrom) && !empty($ato)){
+    $condition.=" and a.assign_date '$afrom' and '$ato' ";
+  }
+if(!empty($clfrom) && !empty($clto)){
+$condition.=" and u.c_date between '$clfrom' and '$clto' ";
+}
+if(!empty($assignto)){
+    $condition.=" AND a.assign_to='$assignto'";
+}
 
 ?>
-
-<title>
-  <?php echo $pageTitle; ?>
-</title>
 <style>
-  table.dataTable {
-    border-collapse: collapse;
-  }
-
-  th {
-    white-space: nowrap;
-  }
-
-  .pending {
-    background: #FFC04C !important;
-  }
-
-  .viewall {
-    background: #7DE5F6 !important;
-  }
-
-  @media only screen and (max-width:2600px) {
-    #assignTable {
-      display: block;
-      overflow-x: auto;
-      float: none !important;
+    input{
+        outline:none;
+        border:none;
+        background:transparent;
+        width:100%;
     }
-  }
-
-  @media only screen and (max-width:768px) {
-    div.dt-buttons {
-      display: flex !important;
-      justify-content: center !important;
+    th{
+    font-weight:400 !important;
     }
-
-    .dataTables_wrapper .dataTables_filter {
-      display: flex;
-      justify-content: center;
-      padding-top: 10px;
-    }
-  }
-</style>
-</head>
-
-
-<div class="container-fluid">
-  <div class="row mb-2">
-    <div class="col-6">
-      <h2 class="title">Assign Ticket</h2>
-    </div>
-    <div class="col-6">
-      <button type="button" class="btn common-btn btn-info text-white fw-bold float-end" data-bs-toggle="modal"
-        data-bs-target="#assignTicket">Assign Ticket</button>
-    </div>
-  </div>
-  <div>
-    <table class="table table-bordered table-striped pt-2" id="assignTable">
-      <thead>
-
-        <tr>
-          <th>Sr No</th>
-          <th>Priority</th>
-          <th>Prod Stop</th>
-          <th>Status</th>
-          <th>Date</th>
-          <th>User</th>
-          <th>M/c No</th>
-          <th>Department</th>
-          <th>Plant</th>
-          <th>Problem</th>
-          <th>Remark</th>
-          <th>Assign To</th>
-          <th>Assign Date</th>
-          <th>Approx. Time</th>
-          <th>Unit</th>
-          <th>Update from Assign Person</th>
-          <th>Category</th>
-          <th>Sub Category</th>
-          <th>Role</th>
-          <th>Action</th>
-
-        </tr>
-      </thead>
-      <tbody>
-        <?php while($row1 = sqlsrv_fetch_array($query1, SQLSRV_FETCH_ASSOC)) {?>
-        <tr>
-          <td><?php echo $row1['srno']?></td>
-          <td><?php echo $row['priority']?></td>
-          <td><?php echo $row['proddtop']?></td>
-          <td><?php echo $row['status']?></td>
-          <td><?php echo $row['date']?></td>
-          <td><?php echo $row['user']?></td>
-          <td><?php echo $row['mcno']?></td>
-          <td><?php echo $row['department']?></td>
-          <td><?php echo $row['plant']?></td>
-          <td><?php echo $row['problem']?></td>
-          <td><?php echo $row['remark']?></td>
-          <td><?php echo $row1['ticket_id']?></td>
-          <td><?php echo $row1['prev_ticket_id']?></td>
-          <td><?php echo $row1['assignby']?></td>
-          <td><?php echo $row1['assignto']?></td>
-          <td><?php echo $row1['assign_date']?></td>
-          <td><?php echo $row1['approx_time']?></td>
-          <td><?php echo $row1['unit']?></td>
-          <td><?php echo $row1['updatefrom']?></td>
-          <td><?php echo $row1['cat']?></td>
-          <td><?php echo $row1['subcat']?></td>
-          <td><?php echo $row1['role']?></td>
-          <td>
-            <div class="d-flex">
-              <a type="button" class="btn btn-primary btn-sm me-1">Edit</a>
-              <a type="button" class="btn btn-success btn-sm me-1">Save</a>
-              <a type="button" class="btn btn-danger btn-sm">Cancel</a>
-            </div>
-          </td>
-          <?php } ?>
-        </tr>
-
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Modal -->
-  <div class="modal fade" id="assignTicket" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Assign Ticket</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body" style="background: #b9bbbe2b;">
-          <form id="assignForm" method="post" action="../main_db.php">
-            <div class="row">
-              <div class="col-md-3">
-                <label for="">Assign By</label>
-                <input type="text" name="assignby" id="" value="<?php echo $_SESSION['uname'] ?>" readonly
-                  class="form-control mt-1">
-                <!-- <input type="text" name="" id="" value="<?php echo $row['srno'] ?>"> -->
-              </div>
-              <div class="col-md-3">
-                <label for="">Assign To</label>
-                <input type="text" name="assign_to" id="" value="" class="form-control mt-1">
-              </div>
-              <div class="col-md-3">
-                <label for="">Approx. Time</label>
-                <div class="input-group mt-1">
-                  <input type="number" name="approx_time" id="approxTime" class="form-control" required>
-                  <select name="unit" id="unit" class="form-control">
-                    <option value="hours">Hours</option>
-                    <option value="days">Days</option>
-                    <option value="months">Months</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="col-md-3">
-                <label for="">Priority</label>
-                <select name="priority" id="priority" class="form-control mt-1">
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
-            </div>
-            <div class="row mt-3">
-              <div class="col-md-3">
-                <label for="">Category</label>
-                <select name="cat" id="cat" class="form-control mt-1">
-                  <option value="mechanical">Mechanical</option>
-                  <option value="electrical">Electrical</option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <label for="">Sub Category</label>
-                <select name="subcat" id="subcat" class="form-control mt-1">
-                  <option value="Crane">Crane</option>
-                  <option value="Penal">Penal</option>
-                  <option value="Febrication">Febrication</option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <label for="">Role</label>
-                <select name="role" id="role" class="form-control mt-1">
-                  <option value="inhouse">In House</option>
-                  <option value="thirdparty">Third Party</option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <label for="">Update</label>
-                <input type="text" name="updatefrom" id="" class="form-control mt-1">
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-success" name="assignsave" id="assignSave"
-            form="assignForm">Submit</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // active link in sidebar
-  $('#aticket').addClass('active');
-
-  // datatable to table
-  $(document).ready(function () {
-    $('#assignTable').DataTable({
-      "processing": true,
-      "lengthMenu": [10, 25, 50, 75, 100],
-      "responsive": {
-        "details": true
-      },
-      "columnDefs": [
-        { "className": "dt-center", "targets": "_all" }
-      ],
-      dom: 'Bfrtip',
-      ordering: true,
-      destroy: true,
-      "order": [[1, 'desc']],
-      buttons: ['pageLength', {
-        text: 'Pending', className: 'pending',
-      },
-        {
-          text: 'View All', className: 'viewall',
-        }],
-      language: {
-        searchPlaceholder: "Search..."
-      }
-    });
-    // Assign Ticket - Save assigned ticket in database-table: assign
-    $('#assignSave').click(function () {
-      // Serialize the form data
-      var formData = $('#assignForm').serialize();
-
-      // Send the data using AJAX
-      $.ajax({
-        type: 'POST',
-        url: $('#assignForm').attr('action'),
-        data: formData,
-        success: function (data) {
-          alert(data); // Display the response from the server
-          $('#assignTicket').modal('hide');
-        },
-        error: function () {
-          alert('Error submitting form');
+    /* Set the table container to have a fixed height and overflow-y: auto */
+    .table-container {
+        max-height: 700px; /* Set your desired height */
+        overflow-y: auto;
         }
-      });
-    });
-    // $(document).on('click', '#assignSave', function () {
-    //   console.log('hi click');
-    //   $.ajax({
-    //     url: 'main_db.php',
-    //     type: 'POST',
-    //     data: $('#assignForm').serialize(),
-    //     success: function (data) {
-    //       alert(data);
-    //       $('#assignTicket').modal('hide');
-    //     }
-    //   });
-    // });
-  });
 
+    /* Make the table header fixed */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-</script>
+    thead {
+        position: sticky;
+        top: 0;
+        background-color: #f2f2f2; /* Add a background color if needed */
+    }
+
+    #ctickettable th{
+            white-space:nowrap;
+            font-size: 15px;
+            padding: 8px 15px 8px 8px;
+        }
+        #ctickettable td{
+            white-space: nowrap;
+            font-size: 14px;
+        
+            font-weight:500;
+        }
+        /* @media only screen and (max-width:2600px) {
+        #ctickettable{
+            display: block;
+            overflow-x: auto;
+            float: none !important;
+        }
+      }
+        @media only screen and (max-width:768px) {
+        div.dt-buttons {
+            display: flex !important;
+            justify-content: center !important;
+        }
+
+        .dataTables_wrapper .dataTables_filter {
+            display: flex;
+            justify-content: center;
+            padding-top: 10px;
+        }
+      } */
+    
+</style>
+<div class="table-container">   
+    <table class="table table-bordered text-center table-striped table-hover mb-0" id="ctickettable">
+        <thead>
+            <tr class="bg-secondary text-light" >
+            <tr class="bg-secondary text-light">
+                <th>Sr</th>
+                <th>Action</th>
+                <th>Priority</th>
+                <th>Prod Stop</th>
+                <th>Status Team </th>
+                <th>Create Date </th>
+                <th>User</th>
+                <th>M/C No.</th>
+                <th>Department </th>
+                <th>Plant</th>
+                <th>Issue</th>
+                <th>Remark C</th> 
+                <!-- From assign -->
+                <th>Assign to </th>
+                <th>Assign Date </th>
+                <th>Approx time</th>
+                <th>Unit</th>
+                <th>Update </th>
+                <th>Sub Cat</th>
+                <th>Role</th>
+                <!-- <th>Close Status</th> -->
+                <th>Resolved Time</th>
+                <th>Parts Change</th>
+                <th>Remarks Team</th>
+                <th>CloseDate</th>
+                <th>Days</th>    
+                
+            </tr>
+        </thead>
+        <tbody>
+            <?php                 
+            
+               $sr=1;
+               $sql="SELECT u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,u.ticketid,a.assign_to,a.approx_time,a.unit,a.istransfer,
+               a.update_assign FROM assign a full outer join ticket t on a.ticket_id =t.srno
+               full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0 and (a.istransfer=0 or a.istransfer is null)".$condition;
+               $run=sqlsrv_query($conn,$sql);
+               while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
+               ?>
+           <tr>
+               <td><?php echo $sr ?></td>
+               <td><?php echo $row['pstop'] ?></td>
+               <?php
+           
+               if($row['ticketid']==NULL){
+                   if($row['assign_to']==NULL){
+                       ?>
+                       <td>Unassigned</td>
+                       <?php
+                   }else{
+                       ?>
+                       <td>Open</td>
+                       <?php
+                   }
+               }else{  
+                   if($row['resolved_time']!=''){
+                       ?>
+                       <td>Closed</td>
+                       <?php
+                   }else{
+                       if($row['approx_cdate']->format('Y')=='1900'){
+                           ?>
+                           <td>Transferred</td>
+                           <?php
+                       }else{
+                           ?>
+                           <td>Delayed</td>
+                           <?php
+                       }
+                   }
+               }                      
+               ?>                      
+               <td><?php echo $row['date']->format('Y-m-d') ?></td>
+               <td><?php echo $row['username'] ?></td>
+               <td><?php echo $row['mcno'] ?></td>
+               <td><?php echo $row['department'] ?></td>
+               <td><?php echo $row['plant'] ?></td>
+               <td><?php echo $row['issue'] ?></td>
+               <td><?php echo $row['remark'] ?></td>
+               <td><?php echo $row['assign_to']  ?></td>
+               <td><?php echo $row['approx_time'] ?></td>
+               <td><?php echo $row['unit'] ?></td>
+               <td><?php echo $row['update_assign'] ?></td>
+             
+               <?php
+               $sr++;
+                   }
+               ?>            
+           </tr>                            
+        </tbody>
+    </table>
+</div>  
 <?php
-
-include('../includes/footer.php');
-?>
+}

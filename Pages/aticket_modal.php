@@ -3,6 +3,9 @@
 include('../includes/dbcon.php');
 session_start();
 $sr=$_POST['sr'];
+$st=$_POST['st'];
+$asr=$_POST['asr'];
+echo $st;
 
 $date=date('Y-m-d');
 $sql="SELECT * FROM ticket where srno='$sr' ";
@@ -18,7 +21,7 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
             <!-- <input type="hidden" id="srno" name="srno" value="<?php echo $row['srno']   ?>" > -->
         </label>
 
-        <label class="form-label col-lg-3 col-md-6" for="user">User
+        <label class="form-label col-lg-3 col-md-6" for="user">Created By     
             <input class="form-control" id="user" type="text" name="user" value="<?php echo $row['username'] ?>" readonly>
         </label>
 
@@ -32,9 +35,15 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
 
 
         <label class="form-label col-lg-3 col-md-6" for="plant">Plant
-            <input class="form-control" id="plant" type="text" name="plant" value="<?php echo $row['plant'] ?>">
+            <!-- <input class="form-control" id="plant" type="text" name="plant" value="<?php echo $row['plant'] ?>"> -->
+                <select class="form-select" name="plant" id="plant" >
+                    <option selected default value=""></option>
+                    <option <?php if($row['plant']=="701"){ ?> selected <?php } ?> value="701">701</option>
+                    <option <?php if($row['plant']=="696"){ ?> selected <?php } ?> value="696">696</option>
+                    <option <?php if($row['plant']=="2205"){ ?> selected <?php } ?> value="2205">2205</option>
+                    <option <?php if($row['plant']=="Jarod"){ ?> selected <?php } ?> value="Jarod">Jarod</option>
+                </select>
         </label>
-
 
         <label class="form-label col-lg-3 col-md-6" for="issue">Issue
             <input class="form-control" id="issue" type="text" name="issue" value="<?php echo $row['issue'] ?>">
@@ -68,7 +77,7 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
 
         <!-- </div>  
             <div class="row ps-2"> -->
-        <label class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
+        <!-- <label class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
             <br>
 
             <input class="form-check-input " type="radio" name="priority" value="low" id="flexRadioDefault1"
@@ -91,27 +100,29 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
                 High
             </label>
 
-        </label>
+        </label> -->
 
 
     </div>
     <div class="row mt-4">
         <div class="col-md-3">
             <label for="">Assigned By</label>
-            <input type="text" name="assignby" id="" value="<?php echo   $_SESSION['uname'] ?>" readonly
+            <input type="text" name="assignby" id="" value="<?php echo $_SESSION['uname'] ?>" readonly
                 class="form-control mt-1">
             <!-- <input type="text" name="" id="" value="<?php echo $row['srno'] ?>"> -->
             <input type="hidden" name="sr" value="<?php echo $sr ?>">
+            <input type="hidden" name="st" value="<?php echo $st ?>">
+            <input type="hidden" name="asr" value="<?php echo $asr ?>" >
         </div>
         <div class="col-md-3">
-            <label for="">Assigned To</label>
+            <label for="assign_to">Assigned To</label>
             <input type="text" name="assign_to" id="assign_to" class="form-control mt-1" onFocus="Searchname(this)">
         </div>
         <div class="col-md-3">
             <label for="">Approx. Time</label>
             <div class="input-group mt-1">
                 <input type="number" name="approx_time" id="" class="form-control" required>
-                <select name="unit" id="unit" class="form-control mt-1" >
+                <select name="unit" id="unit" class="form-control" >
                     <option value="hours">Hours</option>
                     <option value="days">Days</option>
                     <option value="months">Months</option>
@@ -127,8 +138,6 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
                 <option value="electrical">Electrical</option>
             </select>
         </div>
-
-
     </div>
     <div class="row mt-3">
 
@@ -161,7 +170,7 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
             <label for="">Update</label>
             <input type="text" name="updatefrom" id="" class="form-control mt-1">
         </div>
-
+<!-- 
         <label class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
             <br>
 
@@ -180,6 +189,30 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
 
             <input class="form-check-input" type="radio" name="prioritya" value="high" id="flexRadioDefault6">
             <label class="form-check-label me-2" for="flexRadioDefault6">
+                High
+            </label>
+
+        </label> -->
+        <label class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
+            <br>
+
+            <input class="form-check-input " type="radio" name="prioritya" value="low" id="flexRadioDefault1"
+                <?php if($row['priority']=="low"){ ?> checked <?php } ?>>
+            <label class="form-check-label me-2" for="flexRadioDefault1">
+                Low
+            </label>
+
+
+            <input class="form-check-input" type="radio" name="prioritya" value="medium" id="flexRadioDefault2"
+                <?php if($row['priority']=="medium"){ ?> checked <?php } ?>>
+            <label class="form-check-label me-2" for="flexRadioDefault2">
+                Medium
+            </label>
+
+
+            <input class="form-check-input" type="radio" name="prioritya" value="high" id="flexRadioDefault3"
+                <?php if($row['priority']=="high"){ ?> checked <?php } ?>>
+            <label class="form-check-label me-2" for="flexRadioDefault3">
                 High
             </label>
 

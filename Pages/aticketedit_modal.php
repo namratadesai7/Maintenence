@@ -3,6 +3,7 @@
 include('../includes/dbcon.php');
 session_start();
 $sr=$_POST['sr'];
+$st=$_POST['st'];
 
 $sql="SELECT * FROM assign where ticket_id=$sr ";
 $run=sqlsrv_query($conn,$sql);
@@ -13,11 +14,11 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
 // $row1=sqlsrv_fetch_array($run1,SQLSRV_FETCH_ASSOC);
 
 $unit=$row['unit'] ?? '';
-$priority=$row['priority'] ?? '';
+$priority = trim($row['priority']) ?? '';
 $cat=$row['cat'] ?? '';
 $subcat=$row['subcat']?? '';
 $role=$row['role']?? '';
-echo $priority;
+
 ?>
 <div class="container-fluid">
         
@@ -28,7 +29,9 @@ echo $priority;
                     
                     class="form-control mt-1">
                     <!-- `<input type="text" name="" id="" value="<?php echo $row['srno'] ?>"> -->
-                    <input type="text" name="sr" value="<?php echo $sr ?>">
+                    <input type="hidden" name="sr" value="<?php echo $sr ?>">
+                    <input type="hidden" name='istrans' value="<?php echo $st ?>">
+                    <input type="hidden" name="asr" value="<?php echo $row['srno'] ?>">
               </div>
 
               <div class="col-md-3">
@@ -94,28 +97,23 @@ echo $priority;
               
             <label class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
                 <br>
-                <?php
-                  // echo $priority;
-                ?>
-                
-                <input class="form-check-input " type="radio" name="priority" value="low" id="flexRadioDefault1"
-                <?php if($priority=="low"){ ?> checked <?php } ?>>
-            <label class="form-check-label me-2" for="flexRadioDefault1">
-                Low
-            </label>
+                <input class="form-check-input" type="radio" name="priority" value="low" id="flexRadioDefault1" <?php if($priority == "low"){ ?> checked <?php } ?>>
+                <label class="form-check-label me-2" for="flexRadioDefault1">
+                  Low
+                </label>
 
 
-            <input class="form-check-input" type="radio" name="priority" value="medium" id="flexRadioDefault2"
-                <?php if($priority=="medium"){ ?> checked <?php } ?>>
-            <label class="form-check-label me-2" for="flexRadioDefault2">
-                Medium
-            </label>
+                <input class="form-check-input" type="radio" name="priority" value="medium" id="flexRadioDefault2" <?php if($priority == "medium"){ ?> checked <?php } ?>>
+                <label class="form-check-label me-2" for="flexRadioDefault2">
+                    Medium
+                </label>
 
 
-            <input class="form-check-input" type="radio" name="priority" value="high" id="flexRadioDefault3"
-                <?php if($priority=="high"){ ?> checked <?php } ?>>
-            <label class="form-check-label me-2" for="flexRadioDefault3">
-                High
+                <input class="form-check-input" type="radio" name="priority" value="high" id="flexRadioDefault3" <?php if($priority == "high"){ ?> checked <?php } ?>>
+                <label class="form-check-label me-2" for="flexRadioDefault3">
+                    High
+                </label>
+
             </label>
               
             </div>

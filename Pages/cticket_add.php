@@ -3,6 +3,7 @@ include('../includes/dbcon.php');
 include('../includes/header.php'); 
 
 $date=date('Y-m-d');
+$sname=$_SESSION['sname'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -60,8 +61,8 @@ $date=date('Y-m-d');
                             <input class="form-control" id="date" type="date" name="date" value="<?php echo $date ?>">              
                         </label>
                 
-                        <label class="form-label col-lg-3 col-md-6" for="user">User                    
-                            <input class="form-control" id="user" type="text" name="user"  value="<?php echo $_SESSION['uname']  ?>">
+                        <label class="form-label col-lg-3 col-md-6" for="user">Created By                   
+                            <input class="form-control" id="user" type="text" name="user" value="<?php echo $sname ?>" onFocus="Searchname(this)" >
                         </label>
                     
                         <label class="form-label col-lg-3 col-md-6" for="mcno">M/c No                     
@@ -73,11 +74,19 @@ $date=date('Y-m-d');
                         </label>    
                  
                         <label class="form-label col-lg-3 col-md-6" for="plant">Plant                    
-                            <input class="form-control" id="plant" type="text" name="plant" value="">
+                            <!-- <input class="form-control" id="plant" type="text" name="plant" value=""> -->
+                            <select class="form-select" name="plant" id="plant" >
+                                <option selected default value=""></option>
+                                <option value="701">701</option>
+                                <option value="696">696</option>
+                                <option value="2205">2205</option>
+                                <option value="Jarod">Jarod</option>
+
+                            </select>
                         </label>
 
                 
-                        <label class="form-label col-lg-3 col-md-6" for="issue">Issue
+                        <label class="form-label col-lg-3 col-md-6" for="issue">Issue/Problem
                             <input class="form-control" id="issue" type="text" name="issue" value="">
                          <!-- <Audio Controls>
                              <Source Src="abc.mp3" type="Audio/mpeg" >
@@ -216,6 +225,48 @@ $(document).on('change','#mcno',function(){
 }
    
 })
+
+function Searchname(txtBoxRef) {
+      
+      var f = true; //check if enter is detected
+        $(txtBoxRef).keypress(function (e) {
+            if (e.keyCode == '13' || e.which == '13'){
+                f = false;
+            }
+        });
+        $(txtBoxRef).autocomplete({      
+            source: function( request, response ){
+                $.ajax({
+                    url: "cticketget_data.php",
+                    type: 'post',
+                    dataType: "json",
+                    data: {aname: request.term },
+                    success: function( data ) {
+                        response( data );
+                    },
+                    error:function(data){
+                        console.log(data);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                $('#user').val(ui.item.label);
+                return false;
+            },
+            change: function (event, ui) {
+                if(f){
+                    if (ui.item == null){
+                        $(this).val('');
+                        $(this).focus();
+                    }
+                }
+            },
+            open: function () {
+            // Set a higher z-index for the Autocomplete dropdown
+            $('.ui-autocomplete').css('z-index',1500);
+           }
+          });
+        } 
 </script>
 <?php
 

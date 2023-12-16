@@ -21,8 +21,9 @@
             align-items:center;
             min-height:100vh;
             background:url('./images/new.jpg') no-repeat;
-            background-size:80% auto;
-            background-position:center;       
+            background-size:57% auto;
+            background-position:center;   
+            /* background-color:  #fcf3d9;   */
         }
         .wrapper{
             width:420px;

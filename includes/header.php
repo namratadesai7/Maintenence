@@ -79,8 +79,9 @@ include('dbcon.php');
         </div>
         <div class="sidebar-menu">
             <ul>
-                <li  >
+                <li>
                     <input type="hidden" id="empid" value="<?php echo $_SESSION['empid']  ?>">
+                    <input type="hidden" id="rights" value="<?php echo $_SESSION['urights']  ?>">
                     <a href="../Pages/dashboard.php" id="dashboard" class="menu-link"><i class="fa-solid fa-house"></i>
                         <span>Dashboard</span> </a>
                     <div class="sub-menu mt-3">
@@ -125,6 +126,22 @@ include('dbcon.php');
                     </a>
                     <div class="sub-menu">
                         <a href="../Pages/wdetailsmas.php" class="link_name"></i>Work Details Master</a>
+                    </div>
+                </li>
+                <li class="hide">
+                    <a href="../Pages/report.php" id="report" class="menu-link"><i class="fa-regular fa-file me-3"></i>
+                        <span>Report</span>
+                    </a>
+                    <div class="sub-menu">
+                        <a href="../Pages/report.php" class="link_name"></i>Report</a>
+                    </div>
+                </li>
+                <li class="hide" >
+                    <a href="../Pages/urights.php" id="urights" class="menu-link"><i class="fa-regular fa-file me-3"></i>
+                        <span>User Rights</span>
+                    </a>
+                    <div class="sub-menu">
+                        <a href="../Pages/urights.php" class="link_name"></i>User Rights</a>
                     </div>
                 </li>
                 <li>
