@@ -93,8 +93,7 @@ include('../includes/header.php');
                 <div class="row">
                     <div class="col"></div>
                     <div class="col-auto">
-                            <button type="button" class="btn btn-rounded rounded-pill btn-danger search" id="search">Search</button>
-                          
+                        <button type="button" class="btn btn-rounded rounded-pill btn-danger search" id="search">Search</button>                         
                     </div>
                 </div>
             </div><br>
@@ -104,32 +103,31 @@ include('../includes/header.php');
                 <thead>
                     <tr class="bg-secondary text-light">
                         <th>Sr</th>
-                        <th>Action</th>
+                        <th>Ticket<br>ID</th>
                         <th>Priority</th>
                         <th>Prod Stop</th>
-                        <th>Status Team </th>
-                        <th>Create Date </th>
-                        <th>Created By</th>
+                        <th>Status<br>Team </th>
+                        <th>Create<br>Date </th>
+                        <th>Created<br>By</th>
                         <th>M/C No.</th>
                         <th>Department </th>
                         <th>Plant</th>
                         <th>Issue</th>
                         <th>Remark C</th> 
                         <!-- From assign -->
-                        <th>Assign to </th>
-                        <th>Assign Date </th>
-                        <th>Approx time</th>
+                        <th>Assign<br>to </th>
+                        <th>Assign<br>Date </th>
+                        <th>Approx<br>time</th>
                         <th>Unit</th>
                         <th>Update </th>
                         <th>Sub Cat</th>
                         <th>Role</th>
                         <!-- <th>Close Status</th> -->
-                        <th>Resolved Time</th>
-                        <th>Parts Change</th>
-                        <th>Remarks Team</th>
-                        <th>CloseDate</th>
-                        <th>Days</th>    
-                    
+                        <th>Resolved<br>Time</th>
+                        <th>Parts<br>Change</th>
+                        <th>Remarks<br>Team</th>
+                        <th>Close<br>Date</th>
+                        <th>Days</th>                       
                     </tr>
                 </thead>
                 <tbody>
@@ -147,7 +145,6 @@ $('#report').addClass('active');
 
 $(document).on('click','#search', function(){
 
- 
  var user=$('#user').val();
  var assignto=$('#assignto').val();
  var pending=$('#pending').val();
@@ -160,7 +157,7 @@ $(document).on('click','#search', function(){
 
  // if(user=='' && date== '' ){
         
-    //         return false;
+    //return false;
 
     // }else{
     $.ajax({    
@@ -178,7 +175,6 @@ $(document).on('click','#search', function(){
     // }
 
 });
-
   function Searchname(txtBoxRef) {
       
       var f = true; //check if enter is detected

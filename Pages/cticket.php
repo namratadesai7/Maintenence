@@ -2,70 +2,79 @@
 include('../includes/dbcon.php');
 include('../includes/header.php');  
 $date=date('Y-m-d');
+
+
+
+$condition='';
+if( $_SESSION['urights']!="admin"){
+
+    $condition.=" and (a.istransfer=0 or a.istransfer is null) and username='".$_SESSION['sname']."'";
+}
+
 ?>
 
-    <style>
-        .divCss {
+<style>
+    .divCss {
         background-color: white;
         padding: 20px;
         border-radius: 5px;
         box-shadow: 0 1rem 2rem rgba(132, 139, 200, 0.18);
-        }
-        .fl{
-            margin-top:2rem;
-        }
-        .abc{
-            margin:20px;
-            padding-top:20px;
-            /* padding-bottom:20px;
-            padding-left:250px !important;     */
-            text-align:center;
-                }
-        /* .col{
-            text-align:center;
-        } */
-        .form-control{
-            width:40%;
-        }
-        .form-select{
-            width:40%;
-        }
-        .btn1{
-            /* margin-top:10px;
-            padding-left:40%;
-            padding-right:40%;
-            width:100%; */
-            /* align-items:center;
-            padding-top:40px;
-            padding-left:350px;
-         */
-         text-align:center;
-         margin-top:40px;
-        }
-        #ctickettable{
-            width:100% !important;
-        }
-        #ctickettable th{
-            white-space:nowrap;
-            font-size: 15px;
-            padding: 8px 15px 8px 8px;
-        }
-        #ctickettable td{
-            white-space: nowrap;
-            font-size: 14px;
-        
-            font-weight:500;
-        }
-        @media only screen and (max-width:1700px) {
-            #ctickettable{
-                display: block;
-                overflow-x: auto;
-                float: none !important;
-                width: 100%; 
-            }}        
-                
-                /* Set width to 100%
+    }
+    .fl{
+        margin-top:2rem;
+    }
+    .abc{
+        margin:20px;
+        padding-top:20px;
+        /* padding-bottom:20px;
+        padding-left:250px !important;     */
+        text-align:center;
             }
+    /* .col{
+        text-align:center;
+    } */
+    .form-control{
+        width:40%;
+    }
+    .form-select{
+        width:40%;
+    }
+    .btn1{
+        /* margin-top:10px;
+        padding-left:40%;
+        padding-right:40%;
+        width:100%; */
+        /* align-items:center;
+        padding-top:40px;
+        padding-left:350px;
+        */
+        text-align:center;
+        margin-top:40px;
+    }
+    #ctickettable{
+        width:100% !important;
+    }
+    #ctickettable th{
+        white-space:nowrap;
+        font-size: 15px;
+        padding: 8px 15px 8px 8px;
+    }
+    #ctickettable td{
+        white-space: nowrap;
+        font-size: 14px;
+    
+        font-weight:500;
+    }
+    @media only screen and (max-width:1700px) {
+        #ctickettable{
+            display: block;
+            overflow-x: auto;
+            float: none !important;
+            width: 100%; 
+        }}        
+            
+            /* Set width to 100%
+        }
 
     @media only screen and (max-width:768px) {
         div.dt-buttons {
@@ -111,9 +120,9 @@ $date=date('Y-m-d');
             visibility: visible;
         }
 
-    </style>
+</style>
         <title>Create Ticket</title>
-    <div class="container-fluid fl ">
+        <div class="container-fluid fl ">
         <div class="row mb-3">
             <div class="col">
                 <h4 class="pt-2 mb-0">Create Ticket</h4>
@@ -127,7 +136,9 @@ $date=date('Y-m-d');
                 <thead>
                      <tr class="bg-secondary text-light">
                         <th>Sr</th>
+                        
                         <th>Action</th>
+                        <th>Ticket<br>ID</th>
                         <th>Prod<br>Stop</th>
                         <th>Status </th>
                         <th>Date </th>
@@ -146,29 +157,28 @@ $date=date('Y-m-d');
                 <tbody> 
                     <?php
                         $sr=1;
-                        $sql="SELECT u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,u.ticketid,a.assign_to,a.approx_time,a.unit,a.istransfer,
-                        a.update_assign FROM assign a full outer join ticket t on a.ticket_id =t.srno
-                        full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0 and (a.istransfer=0 or a.istransfer is null) and username='".$_SESSION['sname']."'";
+                        $sql="SELECT u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,u.ticketid,a.assign_to,a.approx_time,a.unit,a.istransfer,u.istransfer as utrans
+                        ,a.update_assign FROM assign a full outer join ticket t on a.ticket_id =t.srno
+                        full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  ".$condition;
                         
                         $run=sqlsrv_query($conn,$sql);
                         while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
+                            $sql1="SELECT COUNT(*) AS cnt, ticket_id
+                            FROM assign where ticket_id='".$row['srno']."'
+                            GROUP BY ticket_id";                 
+                            $run1 = sqlsrv_query($conn,$sql1);
+                            $row1 = sqlsrv_fetch_array($run1,SQLSRV_FETCH_ASSOC);
                         ?>
                     <tr>
                         <td><?php echo $sr ?></td>
+                      
                         <td style="padding: 3px 6px !important;"><button type="button" class="btn btn-sm rounded-pill btn-primary edit" id="<?php echo $row['srno']  ?>" >Edit</button>
                             <button type="button" class="btn btn-sm rounded-pill btn-danger delete" id="<?php echo $row['srno']  ?>"><i class="fa-solid fa-trash"></i></button>
                         </td>
+                        <td><?php echo $row['srno'] ?></td>
                         <td><?php echo $row['pstop'] ?></td>
                         <?php
-                        //  $sql2="SELECT u.resolved_time,u.approx_cdate,t.srno,u.ticketid ,a.assign_to
-                        //  FROM uwticket_head u full outer join ticket t on u.ticketid=t.srno
-                        //  full outer join assign a on u.ticketid=a.ticket_id  where t.isdelete=0 and t.srno='".$row['srno']."'";
-                        //  $run2=sqlsrv_query($conn,$sql2);
-                        //  $row2=sqlsrv_fetch_array($run2,SQLSRV_FETCH_ASSOC);
-
-                        
-                        //  $rt=$row2['resolved_time'] ?? '' ;
-                        //  $ct=$row2['approx_cdate'] ?? '';
+             
                         if($row['ticketid']==NULL){
                             if($row['assign_to']==NULL){
                                 ?>
@@ -186,19 +196,27 @@ $date=date('Y-m-d');
                                 <?php
                             }else{
                                 if($row['approx_cdate']->format('Y')=='1900' && $row['istransfer']==1){
+                                    ?> 
+                                    <td class="st">Transfer</td>
+                                    <?php
+                                }else if($row['approx_cdate']->format('Y')=='1900' && $row['istransfer']==0){
+                                   if($row1['cnt']%2==0){
+                                    ?> 
+                                    <td class="st">Assigned</td>
+                                    <?php
+
+                                   } else{
                                     ?>
-                                    <td>Transferred</td>
+                                   <td class="st">Transfer</td>
+                                    <?php
+                                   }
+                                }
+                                else{
+                                    ?>
+                                    <td class="st">Delayed</td>
                                     <?php
                                 }
-                                else if($row['approx_cdate']->format('Y')=='1900' && $row['istransfer']==0){
-                                    ?>
-                                    <td>Assigned</td>
-                                    <?php
-                                }else{
-                                    ?>
-                                    <td>Delayed</td>
-                                    <?php
-                                }
+                              
                             }
                         }                      
                         ?>                      
@@ -216,8 +234,7 @@ $date=date('Y-m-d');
                                 <?php echo $row['remark'] ?>
                             <span class="tooltiptext"><?php echo $row['remark'] ?></span>
                         </td>    
-                       
-
+                
                         <!-- <td><?php echo $row['issue'] ?></td>
                         <td><?php echo $row['remark'] ?></td> -->
                         <td><?php echo $row['assign_to']  ?></td>
@@ -237,6 +254,7 @@ $date=date('Y-m-d');
     <body>
    
     </body>
+
 <script>
   $('#cticket').addClass('active');
 

@@ -5,17 +5,16 @@ session_start();
 $condition='';
 if( $_SESSION['urights']!="admin"){
 
-    $condition.=" and a.assign_to='".$_SESSION['sname']."'";
+    $condition.=" and a.assign_to='".$_SESSION['sname']."' and (u.istransfer='0' or u.istransfer is null) and (CONCAT(t.srno,'/',u.createdAt) in 
+    (select CONCAT(ticketid,'/',max(createdAt)) from uwticket_head group by ticketid) OR u.createdAt is NULL) ";
 }
-$sql="SELECT a.istransfer,a.srno,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
+$sql="SELECT u.Status,a.istransfer,a.srno,t.srno as tsr,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
 a.assign_date,a.approx_time,a.unit,a.update_assign,
-a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark,u.ticketid
+a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark,u.ticketid,u.Status
 
 FROM assign a full outer join ticket t on a.ticket_id=t.srno
-full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and (u.istransfer=0 or u.istransfer is null) and assign_to is not null".$condition;
-
+full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and assign_to is not null".$condition;
 $run=sqlsrv_query($conn,$sql);
-
 
 ?>
   <table class="table  table-bordered text-center table-striped table-hover mb-0" id="uwtickettable">
@@ -23,6 +22,7 @@ $run=sqlsrv_query($conn,$sql);
                 <tr class="bg-secondary text-light">
                     <th>Sr</th>
                     <th>Action</th>
+                    <th>Ticket<br>ID</th>
                     <th>Priority</th>
                     <th>Prod Stop</th>
                     <th>Status Team </th>
@@ -71,11 +71,13 @@ $run=sqlsrv_query($conn,$sql);
                 <tr>
                     <td><?php echo $sr;   ?></td>
                     <td style="padding: 3px 6px !important;">
-                        <button type="button" class="btn btn-sm rounded-pill btn-primary close" <?php if($row['ticketid']==$row['ticket_id']){
-                            ?> disabled <?php
-                        } ?> id="<?php echo $row['ticket_id'] ?>" 
+                        <button type="button" class="btn btn-sm rounded-pill btn-primary close" 
+                        <?php if($row['Status']=="closed") {?> disabled <?php
+                        } ?>
+                        id="<?php echo $row['ticket_id'] ?>" 
                         data-name="<?php echo $row['srno'] ?>">Action</button>
                     </td>
+                    <td><?php echo $row['tsr'] ?></td>
                     <td><?php echo $row['priority'] ?></td>
                     <td><?php echo $row['pstop'] ?></td>
                     <!-- from team -->
@@ -84,7 +86,7 @@ $run=sqlsrv_query($conn,$sql);
                     $ct=$row['approx_cdate'] ?? '';
                     if($ct==''){
                         ?>
-                        <td>Open</td>
+                        <td>Assigned</td>
                         <?php
                     }else{
 
@@ -120,8 +122,7 @@ $run=sqlsrv_query($conn,$sql);
                     <td><?php echo $row['unit'] ?></td>
                     <td><?php echo $row['update_assign'] ?></td>
                     <td><?php echo $row['subcat'] ?></td>
-                    <td><?php echo $row['role'] ?></td>
-                       
+                    <td><?php echo $row['role'] ?></td>                      
                     <td><?php echo $row['resolved_time'] ?? '' ?></td>
                     <td><?php echo $row['no_of_parts'] ?? '' ?></td>
                     <td><?php echo $row['remark']?? '' ?></td>
@@ -216,21 +217,7 @@ $run=sqlsrv_query($conn,$sql);
 		 		'pageLength','copy', 'excel',
                 {
                     text:'ViewAll', className:'viewall',
-                    action:function(){
-                        $('#spinLoader').html('<span class="spinner-border spinner-border-lg mx-2"></span><p>Loading..</p>');
-                        $('#putTable').css({"opacity":"0.5"});
-
-                        $.ajax({
-                            url:'aticket_view.php',
-                            type:'post',
-                            data:{ },
-                            success:function(data){
-                                $('#putTable').html(data);
-                                $('#spinLoader').html('');
-                                $('#putTable').css({"opacity":"1"});
-                            }
-                        });
-                    }
+                  
                 },
         	],
             language: {

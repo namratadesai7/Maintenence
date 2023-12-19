@@ -30,7 +30,7 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
         </div>
     </div>
     <div class="divCss">
-        <form action="cticket_db.php" method="post">
+        <form action="cticket_db.php" method="post" autocomplete="off">
             <div class="row px-2">
 
                 <label class="form-label col-lg-3 col-md-6" for="date">Date
@@ -41,11 +41,11 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
 
                 <label class="form-label col-lg-3 col-md-6" for="user">User
                     <input class="form-control" id="user" type="text" name="user"
-                        value="<?php echo $row['username'] ?>">
+                        value="<?php echo $row['username'] ?>" readonly > 
                 </label>
 
                 <label class="form-label col-lg-3 col-md-6" for="mcno">M/c No
-                    <input class="form-control" id="mcno" type="text" name="mcno" value="<?php echo $row['mcno'] ?>">
+                    <input class="form-control" id="mcno" type="text" name="mcno" value="<?php echo $row['mcno'] ?>" onFocus="Searchmc(this)">
                 </label>
 
                 <label class="form-label col-lg-3 col-md-6" for="dept">Department
@@ -55,7 +55,15 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
 
 
                 <label class="form-label col-lg-3 col-md-6" for="plant">Plant
-                    <input class="form-control" id="plant" type="text" name="plant" value="<?php echo $row['plant'] ?>">
+                    <!-- <input class="form-control" id="plant" type="text" name="plant" value="<?php echo $row['plant'] ?>"> -->
+                    <select class="form-select" name="plant" id="plant" >
+                                <option  value=""></option>
+                                <option <?php if($row['plant']=="107"){ ?> selected <?php } ?>value="107">107</option>
+                                <option  <?php if($row['plant']=="696"){ ?> selected <?php } ?> value="696">696</option>
+                                <option  <?php if($row['plant']=="2205"){ ?> selected <?php } ?> value="2205">2205</option>
+                                <option  <?php if($row['plant']=="Jarod"){ ?> selected <?php } ?> value="Jarod">Jarod</option>
+
+                            </select>
                 </label>
 
 
@@ -130,6 +138,77 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
 
 <script>
 $('#cticket').addClass('active');
+
+function Searchmc(txtBoxRef) {
+      
+    var f = true; //check if enter is detected
+    $(txtBoxRef).keypress(function (e) {
+        if (e.keyCode == '13' || e.which == '13'){
+            f = false;
+        }
+    });
+       $(txtBoxRef).autocomplete({      
+        source: function( request, response ){
+               $.ajax({
+                 url: "cticketget_data.php",
+                  type: 'post',
+                  dataType: "json",
+                  data: {mcno: request.term },
+                  success: function( data ) {
+                    response( data );
+                },
+                error:function(data){
+                    console.log(data);
+                }
+              });
+        },
+        select: function (event, ui) {
+               $('#mcno').val(ui.item.label);
+               return false;
+          },
+        change: function (event, ui) {
+              if (f){
+                  if (ui.item == null){
+                    $(this).val('');
+                    $(this).focus();
+                  }
+            }
+        }
+      });
+}
+$(document).on('change','#mcno',function(){
+   
+   var mc_no=$(this).val();
+   console.log(mc_no)
+   if(mc_no === null || mc_no === ''){
+       //document.getElementById('dept').setAttribute('readonly', true);
+       $.ajax({
+       url:'cticketget_data.php',
+       type:'post',
+       data:{mc_no,mc_no},
+       success:function(data){
+        
+           $('#dept').val(data);
+           $('#dept').prop("readonly", false);
+       }
+   })
+   
+   }else{
+       $.ajax({
+       url:'cticketget_data.php',
+       type:'post',
+       data:{mc_no,mc_no},
+       success:function(data){
+        
+           $('#dept').val(data);
+           $('#dept').prop("readonly", true);
+       }
+        })
+    }
+  
+})
+
+   
 </script>
 <?php
 

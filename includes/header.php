@@ -112,22 +112,7 @@ include('dbcon.php');
                         <a href="../Pages/User Work tickets.php" class="link_name"></i>User Work tickets</a>
                     </div>
                 </li>
-                <li>
-                    <a href="../Pages/wdetails.php" id="wdetails" class="menu-link"><i class="fa-regular fa-file me-3"></i>
-                        <span>Work Details</span>
-                    </a>
-                    <div class="sub-menu">
-                        <a href="../Pages/wdetails.php" class="link_name"></i>Work Details</a>
-                    </div>
-                </li>
-                <li>
-                    <a href="../Pages/wdetailsmas.php" id="wdetailsmas" class="menu-link"><i class="fa-regular fa-file me-3"></i>
-                        <span>Work Details Master</span>
-                    </a>
-                    <div class="sub-menu">
-                        <a href="../Pages/wdetailsmas.php" class="link_name"></i>Work Details Master</a>
-                    </div>
-                </li>
+               
                 <li class="hide">
                     <a href="../Pages/report.php" id="report" class="menu-link"><i class="fa-regular fa-file me-3"></i>
                         <span>Report</span>
@@ -142,6 +127,22 @@ include('dbcon.php');
                     </a>
                     <div class="sub-menu">
                         <a href="../Pages/urights.php" class="link_name"></i>User Rights</a>
+                    </div>
+                </li>
+                <li>
+                    <a href="../Pages/wdetails.php" id="wdetails" class="menu-link"><i class="fa-regular fa-file me-3"></i>
+                        <span>Work Details</span>
+                    </a>
+                    <div class="sub-menu">
+                        <a href="../Pages/wdetails.php" class="link_name"></i>Work Details</a>
+                    </div>
+                </li>
+                <li>
+                    <a href="../Pages/wdetailsmas.php" id="wdetailsmas" class="menu-link"><i class="fa-regular fa-file me-3"></i>
+                        <span>Work Details Master</span>
+                    </a>
+                    <div class="sub-menu">
+                        <a href="../Pages/wdetailsmas.php" class="link_name"></i>Work Details Master</a>
                     </div>
                 </li>
                 <li>

@@ -54,7 +54,7 @@ $sname=$_SESSION['sname'] ?? '';
                 </div>
             </div>
             <div class="divCss">
-                <form action="cticket_db.php" method="post">          
+                <form action="cticket_db.php" method="post" autocomplete="off">          
                     <div class="row px-2">
                    
                         <label class="form-label col-lg-3 col-md-6" for="date">Date  
@@ -77,7 +77,7 @@ $sname=$_SESSION['sname'] ?? '';
                             <!-- <input class="form-control" id="plant" type="text" name="plant" value=""> -->
                             <select class="form-select" name="plant" id="plant" >
                                 <option selected default value=""></option>
-                                <option value="701">701</option>
+                                <option value="107">107</option>
                                 <option value="696">696</option>
                                 <option value="2205">2205</option>
                                 <option value="Jarod">Jarod</option>
@@ -182,6 +182,8 @@ $sname=$_SESSION['sname'] ?? '';
         },
         select: function (event, ui) {
                $('#mcno').val(ui.item.label);
+          
+           
                return false;
           },
           change: function (event, ui) {
@@ -222,51 +224,11 @@ $(document).on('change','#mcno',function(){
             $('#dept').prop("readonly", true);
         }
     })
-}
+    }
    
 })
 
-function Searchname(txtBoxRef) {
-      
-      var f = true; //check if enter is detected
-        $(txtBoxRef).keypress(function (e) {
-            if (e.keyCode == '13' || e.which == '13'){
-                f = false;
-            }
-        });
-        $(txtBoxRef).autocomplete({      
-            source: function( request, response ){
-                $.ajax({
-                    url: "cticketget_data.php",
-                    type: 'post',
-                    dataType: "json",
-                    data: {aname: request.term },
-                    success: function( data ) {
-                        response( data );
-                    },
-                    error:function(data){
-                        console.log(data);
-                    }
-                });
-            },
-            select: function (event, ui) {
-                $('#user').val(ui.item.label);
-                return false;
-            },
-            change: function (event, ui) {
-                if(f){
-                    if (ui.item == null){
-                        $(this).val('');
-                        $(this).focus();
-                    }
-                }
-            },
-            open: function () {
-            // Set a higher z-index for the Autocomplete dropdown
-            $('.ui-autocomplete').css('z-index',1500);
-           }
-          });
-        } 
+ 
 </script>
 <?php
 

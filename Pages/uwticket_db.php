@@ -14,6 +14,7 @@ if(isset($_POST['save'])){
  
   $rem=$_POST['rem'] ?? '';
   $approxdate=$_POST['approxdate'] ?? '';
+  // $statuss=$_POST['closed'] ?? '';
   //tail
   $name=$_POST['name'] ?? '';
   $qty=$_POST['qty']?? '';
@@ -27,17 +28,20 @@ if(isset($_POST['save'])){
 
 
   if($cstatus=='transfer'){
-    $sql="INSERT INTO uwticket_head (ticketid,assignid,c_date,resolved_time,unit,no_of_parts,remark,approx_cdate,createdBy,istransfer)
-    VALUES('$tid','$aid','$cdate','$resolved_time','$unit','$noparts','$rem','$approxdate','".$_SESSION['uname']."',1) ";
-   $run=sqlsrv_query($conn,$sql);
+    $istransfer=1;
     
-  }else{
-  
-  
-  $sql="INSERT INTO uwticket_head (ticketid,assignid,c_date,resolved_time,unit,no_of_parts,remark,approx_cdate,createdBy,istransfer)
-   VALUES('$tid','$aid','$cdate','$resolved_time','$unit','$noparts','$rem','$approxdate','".$_SESSION['uname']."',0) ";
-  $run=sqlsrv_query($conn,$sql);
   }
+  else{
+    $istransfer=0;
+
+  }
+    $sql="INSERT INTO uwticket_head (ticketid,assignid,c_date,Status,resolved_time,unit,no_of_parts,remark,approx_cdate,createdBy,istransfer)
+    VALUES('$tid','$aid','$cdate','$cstatus','$resolved_time','$unit','$noparts','$rem','$approxdate','".$_SESSION['uname']."','$istransfer') ";
+   $run=sqlsrv_query($conn,$sql);
+  //  echo $sql;
+  //  echo $status;
+  
+  
   if($partschange=='yes'){
 
     foreach($name as $key => $value){

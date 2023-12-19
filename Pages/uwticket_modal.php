@@ -23,7 +23,7 @@ $aid=$_POST['aid'];
           <label style="width: 25%;" class="form-label m-1" for="cstatus">Close status
             <select name="cstatus" id="cstatus" class="form-control">
                 <option value=""></option>
-                <option value="close">Close</option>
+                <option value="closed">Close</option>
                 <option value="delay">Delay</option>
                 <option value="transfer">Transfer</option>
             </select>

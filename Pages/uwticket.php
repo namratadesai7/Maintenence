@@ -5,102 +5,113 @@ include('../includes/header.php');
 $sname=$_SESSION['sname'];
 
 $date=date('Y-m-d');
-// $sql="SELECT * FROM assign where assign_to='". $_SESSION['sname']."' and isdelete=0";
-// $sql="SELECT a.srno,a.priority,t.pstop,t.date as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,a.assign_date,a.approx_time,a.unit,a.update_assign,
-// a.subcat, a.role ,u.resolved_time,u.no_of_parts,u.remark as uremark
-// from assign a inner join ticket t on t.srno=a.ticket_id 
-//             inner join uwticket_head u on t.srno=u.ticketid
-//             where a.assign_to='Sumit' and a.isdelete=0";
-            
-// $sql="SELECT a.istransfer,a.srno,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
-// a.assign_date,a.approx_time,a.unit,a.update_assign,
-// a.subcat, a.role    
-// from assign a inner join ticket t on t.srno=a.ticket_id 
-//             where a.assign_to='Sumit' and a.isdelete=0 and  a.istransfer=0";
+
 $condition='';
 if( $_SESSION['urights']!="admin"){
 
-    $condition.=" and a.assign_to='".$_SESSION['sname']."'";
+   
+    // $condition.=" and a.assign_to='".$_SESSION['sname']."' and (u.status='' or u.status is null) and (u.istransfer='' or u.istransfer is null) ";
+      
+    $condition.=" and a.assign_to='".$_SESSION['sname']."' and (u.istransfer='0' or u.istransfer is null) ";
 }
-$sql="SELECT a.istransfer,a.srno,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
+// $sql="SELECT a.istransfer,a.srno,t.srno as tsr,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
+// a.assign_date,a.approx_time,a.unit,a.update_assign,
+// a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark,u.ticketid
+
+// FROM assign a full outer join ticket t on a.ticket_id=t.srno
+// full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and assign_to is not null ".$condition;
+$sql="SELECT u.Status,a.istransfer,a.srno,t.srno as tsr,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
 a.assign_date,a.approx_time,a.unit,a.update_assign,
 a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark,u.ticketid
 
 FROM assign a full outer join ticket t on a.ticket_id=t.srno
-full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and (u.istransfer=0 or u.istransfer is null) and assign_to is not null and c_date is null".$condition;
-
+full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and assign_to is not null and (u.Status <> 'closed' or u.Status is null)   and (CONCAT(t.srno,'/',u.createdAt) in 
+    (select CONCAT(ticketid,'/',max(createdAt)) from uwticket_head group by ticketid) OR u.createdAt is NULL)  ".$condition;
 $run=sqlsrv_query($conn,$sql);
 
 ?>
 
-    <style>
-        .divCss {
-        background-color: white;
-        padding: 20px;
-        border-radius: 5px;
-        box-shadow: 0 1rem 2rem rgba(132, 139, 200, 0.18);
-        }
-        .fl{
-            margin-top:2rem;
-        }
-        .abc{
-            margin:20px;
-            padding-top:20px;
-            /* padding-bottom:20px;
-            padding-left:250px !important;     */
-            text-align:center;
-                }
-        /* .col{
-            text-align:center;
-        } */
-        #uwtickettable .form-control{
-            width:40%;
-        }
-        #uwtickettable .form-select{
-            width:40%;
-        }
-        #patchange input{
-            border:none;
-            outline:none;
-            background:transparent;
-            text-align:center;
-        }
-        .viewall {
-        background: #7DE5F6 !important;
+<style>
+    .divCss {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 1rem 2rem rgba(132, 139, 200, 0.18);
     }
-        .btn1{
-            /* margin-top:10px;
-            padding-left:40%;
-            padding-right:40%;
-            width:100%; */
-            /* align-items:center;
-            padding-top:40px;
-            padding-left:350px;
-         */
-         text-align:center;
-         margin-top:40px;
+    .fl{
+        margin-top:2rem;
+    }
+    .abc{
+        margin:20px;
+        padding-top:20px;
+        /* padding-bottom:20px;
+        padding-left:250px !important;     */
+        text-align:center;
+            }
+    /* .col{
+        text-align:center;
+    } */
+    #uwtickettable .form-control{
+        width:40%;
+    }
+    #uwtickettable .form-select{
+        width:40%;
+    }
+    #patchange input{
+        border:none;
+        outline:none;
+        background:transparent;
+        text-align:center;
+    }
+    .viewall {
+    background: #7DE5F6 !important;
+    }
+
+    .btn1{
+        /* margin-top:10px;
+        padding-left:40%;
+        padding-right:40%;
+        width:100%; */
+        /* align-items:center;
+        padding-top:40px;
+        padding-left:350px;
+        */
+        text-align:center;
+        margin-top:40px;
+    }
+
+    #uwtickettable th{
+        white-space:nowrap;
+        font-size: 15px;
+        padding: 8px 15px 8px 8px;
+    }
+    #uwtickettable td{
+        white-space:nowrap;
+        font-size: 14px;
+        padding-left: 6px;
+        font-weight:500;
+    }
+    @media only screen and (max-width:2600px) {
+        #uwtickettable {
+        display: block;
+        overflow-x: auto;
+        float: none !important;
+        }
+    }
+    @media only screen and (max-width:768px) {
+        div.dt-buttons {
+            display: flex !important;
+            justify-content: center !important;
         }
 
-        #uwtickettable th{
-            white-space:nowrap;
-            font-size: 15px;
-            padding: 8px 15px 8px 8px;
+        .dataTables_wrapper .dataTables_filter {
+            display: flex;
+            justify-content: center;
+            padding-top: 10px;
         }
-        #uwtickettable td{
-            white-space:nowrap;
-            font-size: 14px;
-            padding-left: 6px;
-            font-weight:500;
-        }
-        @media only screen and (max-width:2600px) {
-            #uwtickettable {
-            display: block;
-            overflow-x: auto;
-            float: none !important;
-            }
-        }
-    </style>
-  <title>User Work Ticket</title>
+    }
+</style>
+<title>User Work Ticket</title>
     <div class="container-fluid fl ">
         <div class="row mb-3">
             <div class="col">
@@ -111,11 +122,12 @@ $run=sqlsrv_query($conn,$sql);
                 </div> -->
         </div>
         <div id="putTable" class="divCss">
-           <table class="table  table-bordered text-center table-striped table-hover mb-0" id="uwtickettable">
+           <table class="table table-bordered text-center table-striped table-hover mb-0" id="uwtickettable">
             <thead>
                 <tr class="bg-secondary text-light">
                     <th>Sr</th>
                     <th>Action</th>
+                    <th>Ticket <br>ID</th>
                     <th>Priority</th>
                     <th>Prod Stop</th>
                     <th>Status Team </th>
@@ -164,11 +176,15 @@ $run=sqlsrv_query($conn,$sql);
                 <tr>
                     <td><?php echo $sr;   ?></td>
                     <td style="padding: 3px 6px !important;">
-                        <button type="button" class="btn btn-sm rounded-pill btn-primary close" <?php if($row['ticketid']==$row['ticket_id']){
+                        <button type="button" class="btn btn-sm rounded-pill btn-primary close" 
+                             id="<?php echo $row['ticket_id'] ?>" 
+                            data-name="<?php echo $row['srno'] ?>"   >Action</button>
+                        <!-- <button type="button" class="btn btn-sm rounded-pill btn-primary close" <?php if($row['ticketid']==$row['ticket_id']){
                             ?> disabled <?php
                         } ?> id="<?php echo $row['ticket_id'] ?>" 
-                        data-name="<?php echo $row['srno'] ?>">Action</button>
+                        data-name="<?php echo $row['srno'] ?>">Action</button> -->
                     </td>
+                    <td><?php echo $row['tsr'] ?></td>
                     <td><?php echo $row['priority'] ?></td>
                     <td><?php echo $row['pstop'] ?></td>
                     <!-- from team -->
@@ -177,7 +193,7 @@ $run=sqlsrv_query($conn,$sql);
                     $ct=$row['approx_cdate'] ?? '';
                     if($ct==''){
                         ?>
-                        <td>Open</td>
+                        <td>Assigned</td>
                         <?php
                     }else{
 
@@ -214,7 +230,6 @@ $run=sqlsrv_query($conn,$sql);
                     <td><?php echo $row['update_assign'] ?></td>
                     <td><?php echo $row['subcat'] ?></td>
                     <td><?php echo $row['role'] ?></td>
-                       
                     <td><?php echo $row['resolved_time'] ?? '' ?></td>
                     <td><?php echo $row['no_of_parts'] ?? '' ?></td>
                     <td><?php echo $row['remark']?? '' ?></td>
@@ -236,8 +251,7 @@ $run=sqlsrv_query($conn,$sql);
             <?php
                }
             ?>             
-                <td><?php echo $difference ?></td>
-                    
+                <td><?php echo $difference ?></td>                    
                 <?php
                 $sr++;
                     }
@@ -289,50 +303,91 @@ $run=sqlsrv_query($conn,$sql);
             success: function(data) {
                 $('#uwticketform').html(data);
                 $('#uwticketmodal').modal('show');
-
-
             }
         });
 
     });
     
     $(document).on('change', '#cstatus', function() {
-            var sta= $(this).val();
-           
-            $.ajax({
-                url: 'uwticket_get.php',
-                type: 'post',
-                data: {sta:sta
-                    
-                },
-                // dataType: 'json',
-                success: function(data) {
-                    $('#delaydata').html(data);
-                    // $('#uwticketmodal').modal('show');
-                }
+        var sta= $(this).val();
+        
+        $.ajax({
+            url: 'uwticket_get.php',
+            type: 'post',
+            data: {sta:sta
+                
+            },
+            // dataType: 'json',
+            success: function(data) {
+                $('#delaydata').html(data);
+                // $('#uwticketmodal').modal('show');
+            }
+        });
     });
 
-
-    });
     $(document).on('input', '#numberOfParts', function() {
-            var no= $(this).val();
-            console.log(no);
+        var no= $(this).val();
+        console.log(no);
 
-            $.ajax({
-                url: 'uwticket_get.php',
-                type: 'post',
-                data: {no:no
-                    
-                },
-                // dataType: 'json',
-                success: function(data) {
-                    $('#partchange').html(data);
-                    // $('#uwticketmodal').modal('show');
+        $.ajax({
+            url: 'uwticket_get.php',
+            type: 'post',
+            data: {no:no
+                
+            },
+            // dataType: 'json',
+            success: function(data) {
+                $('#partchange').html(data);
+                // $('#uwticketmodal').modal('show');
+            }
+        });
+    });
+
+    function Searchname(txtBoxRef) {
+      
+      var f = true; //check if enter is detected
+        $(txtBoxRef).keypress(function (e) {
+            if (e.keyCode == '13' || e.which == '13'){
+                f = false;
+            }
+        });
+        $(txtBoxRef).autocomplete({      
+            source: function( request, response ){
+                $.ajax({
+                    url: "cticketget_data.php",
+                    type: 'post',
+                    dataType: "json",
+                    data: {iname: request.term },
+                    success: function( data ) {
+                        response( data );
+                    },
+                    error:function(data){
+                        console.log(data);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                $(this).val(ui.item.label);
+                return false;
+            },
+            change: function (event, ui) {
+                if(f){
+                    if (ui.item == null){
+                        $(this).val('');
+                        $(this).focus();
+                    }
                 }
-    });
-
-    });
+            },
+            open: function () {
+            // Set a higher z-index for the Autocomplete dropdown
+            $('.ui-autocomplete').css('z-index',1500);
+            $('.ui-autocomplete').css('width', '300px'); 
+           }
+        });
+    } 
+   
   
+
     $(document).ready(function () {
         $('#uwtickettable').DataTable({
         "processing": true,

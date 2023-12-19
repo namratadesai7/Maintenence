@@ -2,14 +2,6 @@
 include('../includes/dbcon.php');
 include('../includes/header.php');
 
-// $sql = "SELECT t.srno,a.ticket_id,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,a.assign_to,t.priority,t.pstop,a.unit
-//  FROM assign a full outer join ticket t on a.ticket_id =t.srno
-// where t.isdelete=0 and assign_to is null";
-// $sql="SELECT t.srno,a.ticket_id,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,a.srno as asr,a.assign_to,format(assign_date,'yyyy-MM-dd') as adate,a.approx_time,t.priority,t.pstop,a.unit,a.update_assign,a.cat,a.subcat,
-// a.role,u.resolved_time,u.approx_cdate
-// FROM assign a full outer join ticket t on a.ticket_id =t.srno
-// full outer join uwticket_head u on u.ticketid=a.ticket_id 
-// where t.isdelete=0  and (approx_cdate='1900-01-01' and  resolved_time='') or assign_to is null and istransfer=0";
 $sql="	WITH abc AS (
 
 SELECT COUNT(*) AS cnt, ticket_id
@@ -17,7 +9,6 @@ FROM assign
 GROUP BY ticket_id
 HAVING COUNT(*) % 2 = 0
 )
-
 SELECT
    a.istransfer, t.srno, a.ticket_id, t.date, t.username, t.mcno, t.department, t.plant,
    t.issue, t.remark, t.pstop, a.srno AS asr, a.assign_to, FORMAT(assign_date, 'yyyy-MM-dd') AS adate,
@@ -34,26 +25,25 @@ WHERE
  t.isdelete=0 and (approx_cdate='1900-01-01' and  resolved_time='')
  and ticket_id not in(select ticket_id from abc
 ) or assign_to is null
-
 ";
-$run = sqlsrv_query($conn,$sql);
+$run =sqlsrv_query($conn,$sql);
 $at=$row1['assign_to'] ?? '' ;
 ?>
 <title>
     Assign Ticket
 </title>
 <style>
-     .divCss {
+    .divCss {
         background-color: white;
         padding: 20px;
         border-radius: 5px;
         box-shadow: 0 1rem 2rem rgba(132, 139, 200, 0.18);
         }
-        .fl{
-            margin-top:2rem;
-        }
+    .fl{
+        margin-top:2rem;
+    }
     table.dataTable {
-    border-collapse: collapse;
+        border-collapse: collapse;
     }
 
     th {
@@ -111,6 +101,7 @@ $at=$row1['assign_to'] ?? '' ;
                 <tr class="bg-secondary text-light">
                     <th>Sr</th>
                     <th>Action</th>
+                    <th>Ticket <br>ID</th>
                     <th>Priority</th>
                     <th>Prod<br>Stop</th>
                     <th>Status</th>
@@ -128,8 +119,7 @@ $at=$row1['assign_to'] ?? '' ;
                     <th>Update from<br>Assign Person</th>
                     <th>Category</th>
                     <th>Sub<br>Category</th>
-                    <th>Role</th>
-                  
+                    <th>Role</th>               
                 </tr>
             </thead>
             <tbody>
@@ -140,23 +130,18 @@ $at=$row1['assign_to'] ?? '' ;
                         <tr>
                             <td><?php echo $sr ?></td>
                             <td style="padding: 3px 6px !important;"> 
-                            <?php
-                                if($row['assign_to']== ''){ ?>
+                                  
                                   <a type="button" class="btn btn-success btn-sm assign rounded-pill assign-button" id="<?php echo $row['srno'] ?>"
                                     data-name="<?php echo $row['asr'] ?>" >Assign</a> 
-                                                             
-                                <?php }else{
-                                    ?>
-                                    <a type="button" class="btn btn-primary rounded-pill btn-sm edit"
-                                
-                                id="<?php echo $row['srno']  ?>">Edit</a> 
-                                    <?php
-                                } ?>
-                                                                                                 
+                            
+                                 <!-- <a type="button" class="btn btn-primary rounded-pill btn-sm edit"                                
+                                id="<?php echo $row['srno']  ?>">Edit</a>  -->
+                                                                                                                                
                                 <a type="button" class="btn btn-danger btn-sm rounded-pill" 
                                 href="aticket_db.php?deleteid=<?php echo $row['srno']?>&asr=<?php echo $row['asr'] ?>" 
                                 onclick="return confirm('Are you sure you want to delete the ticket? Once you click ok it will be removed from the below table?')" name="delete">Cancel</a>
                             </td>
+                            <td><?php echo $row['srno'] ?></td>
                             <td> <?php echo $row['priority'] ?></td>
                             <td> <?php echo $row['pstop'] ?></td>
                             <?php
@@ -171,9 +156,9 @@ $at=$row1['assign_to'] ?? '' ;
                                 <?php
                             }
                             ?>                                                                                      
-                            <td> <?php echo $row['date']->format('d-m-Y') ?></td>
-                            <td> <?php echo $row['username'] ?></td>
-                            <td> <?php echo $row['mcno'] ?></td>
+                            <td><?php echo $row['date']->format('d-m-Y') ?></td>
+                            <td><?php echo $row['username'] ?></td>
+                            <td><?php echo $row['mcno'] ?></td>
                             <td><?php echo $row['department']?></td>
                             <td><?php echo $row['plant']?></td>
                             <td><?php echo $row['issue']?></td>
@@ -324,8 +309,8 @@ include('../includes/footer.php');
             // Set a higher z-index for the Autocomplete dropdown
             $('.ui-autocomplete').css('z-index',1500);
            }
-          });
-        } 
+        });
+    } 
   
      
     // datatable to table
@@ -342,8 +327,7 @@ include('../includes/footer.php');
             }],
             dom: 'Bfrtip',
             ordering: true,
-            destroy: true,
-          
+            destroy: true,          
             buttons: [
 		 		'pageLength','copy', 'excel',
                 {
@@ -354,6 +338,24 @@ include('../includes/footer.php');
 
                         $.ajax({
                             url:'aticket_view.php',
+                            type:'post',
+                            data:{ },
+                            success:function(data){
+                                $('#putTable').html(data);
+                                $('#spinLoader').html('');
+                                $('#putTable').css({"opacity":"1"});
+                            }
+                        });
+                    }
+                },
+                {
+                    text:'Pending', className:'pending',
+                    action:function(){
+                        $('#spinLoader').html('<span class="spinner-border spinner-border-lg mx-2"></span><p>Loading..</p>');
+                        $('#putTable').css({"opacity":"0.5"});
+
+                        $.ajax({
+                            url:'aticket_pview.php',
                             type:'post',
                             data:{ },
                             success:function(data){

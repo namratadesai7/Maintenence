@@ -30,7 +30,7 @@ if(!empty($assignto)){
 }
 if(!empty($pending)){
     if($pending=="assigned"){
-        $condition.=" and assign_to is not null and ticketid is null";
+        $condition.=" and assign_to is not null and (ticketid is null or ticketid in( select ticket_id from abc WHERE CNT=2) )and a.istransfer=0";
     
     }else if($pending=="unassigned"){
         $condition.=" and assign_to is null";
@@ -42,10 +42,11 @@ if(!empty($pending)){
         $condition.=" and approx_cdate <> '1900-01-01'";
     }
     else if($pending=="transferred"){
-        $condition.=" and u.istransfer=1 and a.istransfer=1";
-    }
-  
-    }
+        // $condition.=" and u.istransfer=1 and a.istransfer=1 or ticketid in(select ticket_id from abc where cnt=1)";
+        $condition.=" and ticketid in(select ticket_id from abc where cnt=1 or cnt=2) and (CONCAT(t.srno,'/',a.createdAt) in 
+        (select CONCAT(ticket_id,'/',min(createdAt)) from assign group by ticket_id) OR a.createdAt is NULL)  ";
+    }  
+}
 ?>
 <style>
     input{
@@ -110,9 +111,9 @@ if(!empty($pending)){
 <div class="table-container">   
     <table class="table table-bordered text-center table-striped table-hover mb-0" id="ctickettable">
         <thead>
-            <tr class="bg-secondary text-light" >
             <tr class="bg-secondary text-light">
                 <th>Sr</th>
+                <th>Ticket<br>ID</th>
                 <th>Priority</th>
                 <th>Prod Stop</th>
                 <th>Status Team </th>
@@ -136,27 +137,33 @@ if(!empty($pending)){
                 <th>Parts Change</th>
                 <th>Remarks Team</th>
                 <th>CloseDate</th>
-                <th>Days</th>    
-                
+                <th>Days</th>                    
             </tr>
         </thead>
         <tbody>
         <?php
-        $sql="  SELECT a.istransfer as a,u.istransfer,u.ticketid,a.srno,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
-        format(a.assign_date,'dd-MM-yyyy') as adate,a.approx_time,a.unit,a.update_assign,
-        a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark
+        $sql=" WITH abc as( 
+                select count(*) as cnt, a.ticket_id
+                from assign a full outer join uwticket_head u on  u.ticketid=a.ticket_id where u.istransfer=1 GROUP BY ticket_id
+                )
+                SELECT a.istransfer as a,u.istransfer,u.ticketid,a.srno,a.priority,t.srno as tsr,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
+                format(a.assign_date,'dd-MM-yyyy') as adate,a.approx_time,a.unit,a.update_assign,
+                a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark        
+                FROM assign a full outer join ticket t on a.ticket_id=t.srno
+                full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0 ".$condition;
         
-        FROM assign a full outer join ticket t on a.ticket_id=t.srno
-        full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0 ".$condition;
-        //echo $sql;
         
         $run=sqlsrv_query($conn,$sql);
                     $sr=1;
-                  
+                 
                     while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
-                        // $sql2="SELECT c_date,format(c_date,'dd-MM-yyyy') as abc,resolved_time,approx_cdate,no_of_parts,remark  FROM uwticket_head where ticketid='".$row['ticket_id']."' and istransfer=0";
-                        // $run2=sqlsrv_query($conn,$sql2);
-                        // $row2=sqlsrv_fetch_array($run2,SQLSRV_FETCH_ASSOC);
+                        $sql1="SELECT COUNT(*) AS cnt, ticket_id
+                      FROM assign where ticket_id='".$row['tsr']."'
+                      GROUP BY ticket_id";
+                     
+                        // $sql1 ="SELECT assign_to,format(assign_date,'yyyy-MM-dd') as adate,approx_time,unit,update_assign,cat,subcat,role from assign where ticket_id=".$row['srno']." and isdelete=0 ";
+                        $run1 = sqlsrv_query($conn, $sql1);
+                        $row1 = sqlsrv_fetch_array($run1,SQLSRV_FETCH_ASSOC);
                         $row['abc']=$row['abc']?? '' ;
                         $userDate = new DateTime($row['cdate']);
                         $endDate = new DateTime($row['abc']);
@@ -170,6 +177,7 @@ if(!empty($pending)){
                 ?>
                 <tr>
                     <td><?php echo $sr;   ?></td>
+                    <td><?php echo $row['tsr'] ?></td>
                     <td><?php echo $row['priority'] ?></td>
                     <td><?php echo $row['pstop'] ?></td>
                     <!-- from team -->
@@ -195,12 +203,19 @@ if(!empty($pending)){
                         }else{
                             if($ct->format('Y')=='1900' && $row['a']==1){
                                 ?> 
-                                <td class="st">Transferred</td>
+                                <td class="st">Transfer</td>
                                 <?php
                             }else if($ct->format('Y')=='1900' && $row['a']==0){
-                                ?> 
-                                <td class="st">Assigned</td>
-                                <?php
+                                if($row1['cnt']%2==0){
+                                    ?> 
+                                    <td class="st">Assigned</td>
+                                    <?php
+
+                                   } else{
+                                    ?>
+                                   <td class="st">Transfer</td>
+                                    <?php
+                                   }
                             }
                             else{
                                 ?>
@@ -225,8 +240,7 @@ if(!empty($pending)){
                     <td><?php echo $row['unit'] ?></td>
                     <td><?php echo $row['update_assign'] ?></td>
                     <td><?php echo $row['subcat'] ?></td>
-                    <td><?php echo $row['role'] ?></td>
-                       
+                    <td><?php echo $row['role'] ?></td>                      
                     <td><?php echo $row['resolved_time'] ?? '' ?></td>
                     <td><?php echo $row['no_of_parts'] ?? '' ?></td>
                     <td><?php echo $row['remark']?? '' ?></td>

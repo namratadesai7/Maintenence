@@ -121,7 +121,10 @@ $date=date('Y-m-d');
                     <td><?php echo $row['Description'] ?></td>
                     <td><?php echo $row['Work_type'] ?></td>
                     <td><?php echo $row['Agency'] ?></td>
-                    <td id="re"><?php echo $row['Remark'] ?></td>
+                    <td class="tooltip-cell" title="<?php echo $row['Remark'] ?>" style="max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" >                   
+                        <?php echo $row['Remark'] ?> 
+                        <span class="tooltiptext"><?php echo $row['Remark'] ?></span>              
+                    </td>
                     <td><?php echo $row['fdate'] ?></td>
                     <td><?php echo $row['fst_thinker'] ?></td>
                     <?php
@@ -130,20 +133,17 @@ $date=date('Y-m-d');
                     ?>
                         <td></td>
                         <td></td>
-
                     <?php
                 }  else{
                 ?>
                     <td><?php echo $row['sdate']?></td>
                     <td><?php echo $row['caldate']?></td>
-
                 <?php
                 }   ?>
                                 
                     <td><?php echo $row['completed_date']  ?></td>
                     <td><?php  echo $difference  ?></td> 
-                     <td><?php echo $row['responsible_person'] ?></td> 
-                
+                    <td><?php echo $row['responsible_person'] ?></td>                
                     <td><?php echo $row['status_final'] ?></td>
                     <td><button type="button" class="btn btn-sm rounded-pill btn-primary edit" id="<?php echo $row['sr']  ?>" >Edit</button>
                         <button type="button" class="btn btn-sm rounded-pill btn-success update" id="<?php echo $row['sr']   ?>" >Followup</button>
@@ -166,12 +166,9 @@ $date=date('Y-m-d');
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">  
-                        <div id="moddiv">
+                            <div id="moddiv">
 
-                        </div>
-
-                                  
-                            
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class=" btn rounded-pill bg-secondary text-light" data-bs-dismiss="modal">Close</button>
@@ -263,6 +260,8 @@ $date=date('Y-m-d');
 
     });
 
+    
+
     $(document).on('click','.add',function(){
           
             var sr = $(this).attr('id'); 
@@ -293,21 +292,26 @@ $date=date('Y-m-d');
             
             
         });
-  $(document).on('click','.edit',function(){
-    var edit=$(this).attr('id');
-    window.open('wdetails_edit.php?edit='+edit,'_self');
+        $(document).on('click','.edit',function(){
+            var edit=$(this).attr('id');
+            window.open('wdetails_edit.php?edit='+edit,'_self');
 
-  })
-  
-  $(document).on('click','.delete',function(){
-    var del=$(this).attr('id');
-    if(confirm('Are you sure!')){
-        window.open('cticket_db.php?del='+del,'_self');
-    }else{
-        return false;
-    }
-  
-  })
+        })
+    
+        $(document).on('click','.delete',function(){
+            var del=$(this).attr('id');
+            if(confirm('Are you sure!')){
+                window.open('cticket_db.php?del='+del,'_self');
+            }else{
+                return false;
+            }
+    
+        })
+
+    // var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    // var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    //     return new bootstrap.Tooltip(tooltipTriggerEl)
+    // })
 </script>
 <?php
 
