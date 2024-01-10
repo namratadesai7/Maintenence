@@ -1,161 +1,342 @@
-<?php  
+<?php
 include('../includes/dbcon.php');
+include('../includes/header.php'); 
 
-
-$sql = "SELECT * from ticket where isdelete=0";
-$run = sqlsrv_query($conn, $sql);
+$date=date('Y-m-d');
+$sname=$_SESSION['sname'] ?? '';
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- included css drop down Serching -->
+	<link href='../css/select2.min.css' rel='stylesheet' type='text/css'>
+    <title>Create ticket</title>
+    <style>
+        
+        .hidden {
+            display: none;
+        }
+        /* .tog{
+            display:flex;
+        }
+         */
+        .divCss {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 1rem 2rem rgba(132, 139, 200, 0.18);
+        }
+        .fl{
+            margin-top:2rem;
+        }
+        /*ADD dropdown searching*/
+		.select2-container {
+			max-width: 100%;
+		}
+		.select2-container .select2-selection--single{
+			height:39px !important;
+			border: 1px solid #ccc !important;
+		}
 
+        /* .abc{
+            margin:20px;
+            padding-top:20px;
+            /* padding-bottom:20px;
+            padding-left:250px !important;     */
+            text-align:center;
+                } */
+        /* .col{
+            text-align:center;
+        } */
+        
+        /* .btn1{
+            /* margin-top:10px;
+            padding-left:40%;
+            padding-right:40%;
+            width:100%; */
+            /* align-items:center;
+            padding-top:40px;
+            padding-left:350px;
+         */
+         text-align:center;
+         margin-top:40px;
+        } */
 
-<table class="table table-bordered table-striped pt-2" id="assignTable">
-            <thead>
-                <tr class="bg-secondary text-light">
-                    <th>Sr</th>
-                    <th>Priority</th>
-                    <th>Prod<br>Stop</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>User</th>
-                    <th>M/c No</th>
-                    <th>Department</th>
-                    <th>Plant</th>
-                    <th>Issue</th>
-                    <th>Remark</th>
-                    <th>Assign<br>To</th>
-                    <th>Assign<br>Date</th>
-                    <th>Approx<br> Time</th>
-                    <th>Unit</th>
-                    <th>Update from<br>Assign Person</th>
-                    <th>Category</th>
-                    <th>Sub<br>Category</th>
-                    <th>Role</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                     $sr=1;
-                     while($row= sqlsrv_fetch_array($run, SQLSRV_FETCH_ASSOC)) {
-                     
-                        $sql1 ="SELECT assign_to,format(assign_date,'yyyy-MM-dd') as adate,approx_time,unit,update_assign,cat,subcat,role from assign where ticket_id=".$row['srno']." and isdelete=0 ";
-                        $run1 = sqlsrv_query($conn, $sql1);
-                        $row1 = sqlsrv_fetch_array($run1, SQLSRV_FETCH_ASSOC);
-                        $at=$row1['assign_to'] ?? '' ;
-                    ?>
-                        <tr>
-                            <td><?php echo $sr ?></td>
-                            <td> <?php echo $row['priority'] ?></td>
-                            <td> <?php echo $row['pstop'] ?></td>
-                            <?php
-                                if($at==''){ 
-                            ?>
-                                    <td>Unassigned</td>
-                            <?php
-                                }else{
-                                    $sql2="SELECT resolved_time,approx_cdate FROM uwticket_head where ticketid='".$row['srno']."'";
-                                    $run2=sqlsrv_query($conn,$sql2);
-                                    $row2=sqlsrv_fetch_array($run2,SQLSRV_FETCH_ASSOC);
-                                    $rt=$row2['resolved_time'] ?? '' ;
-                                    $ct=$row2['approx_cdate'] ?? '';
+ 
 
-                                    if($ct==''){
-                                        ?>
-                                        <td>Open</td>
-                                        <?php
-                                    }else{
-                                        if($rt==''){
-                                            if($ct->format('Y')=='1900'){
-                                                ?>
-                                                <td>Transferred</td>
-                                                <?php
-                                            }else{
-                                                ?>
-                                                <td>Delayed</td>
-                                                <?php
-                                            }
-                                        }else{
-                                            ?>
-                                            <td>Closed</td>
-                                            <?php
-                                        }
-                                    }                                 
-                                }
-                            ?>                           
-                            <td> <?php echo $row['date']->format('d-m-Y') ?></td>
-                            <td> <?php echo $row['username'] ?></td>
-                            <td> <?php echo $row['mcno'] ?></td>
-                            <td><?php echo $row['department']?></td>
-                            <td><?php echo $row['plant']?></td>
-                            <td><?php echo $row['issue']?></td>
-                            <td><?php echo $row['remark']?></td>
-                            <td><?php echo $row1['assign_to'] ?? '' ?></td>
-                            <td><?php echo $row1['adate'] ?? '' ?></td>
-                            <td><?php echo $row1['approx_time'] ?? '' ?></td>
-                            <td><?php echo $row1['unit'] ?? '' ?></td>
-                            <td><?php echo $row1['update_assign'] ?? '' ?></td>
-                            <td><?php echo $row1['cat'] ?? '' ?></td>
-                            <td><?php echo $row1['subcat'] ?? '' ?></td>
-                            <td><?php echo $row1['role'] ?? '' ?></td>
-                            <td style="padding: 3px 6px !important;"> 
-                                <a type="button" class="btn btn-primary btn-sm edit"
-                                id="<?php echo $row['srno']   ?>">Edit</a>
-                               
-                                <?php
-                                 if($at== ''){ ?>
-                                    <a type="button" class="btn btn-success btn-sm assign assign-button" id="<?php echo $row['srno'] ?>" >Assign</a> 
-                                    <?php } ?>
-                                <a type="button" class="btn btn-danger btn-sm" 
-                                href="aticket_db.php?deleteid=<?php echo $row['srno']?>" 
-                                onclick="return confirm('Are you sure you want to delete the ticket? Once you click ok it will be removed from the below table?')" name="delete">Cancel</a>
-                            </td>
-                        </tr>                    
-                    <?php
-                    $sr++; }
-                ?>
-            </tbody>
-        </table>
-        <script>
-           // datatable to table
-    $(document).ready(function() {
-        $('#assignTable').DataTable({
-            "processing": true,
-            "lengthMenu": [10, 25, 50, 75, 100],
-            "responsive": {
-                "details": true
-            },
-            "columnDefs": [{
-                "className": "dt-center",
-                "targets": "_all"
-            }],
-            dom: 'Bfrtip',
-            ordering: true,
-            destroy: true,
+    </style>
+</head>
+<body>
+        <div class="container-fluid fl">
+            <div class="row mb-3">
+                <div class="col">
+                    <h4 class="pt-2 mb-0">Create Ticket</h4>
+                </div>
+            </div>
+            <div class="divCss">
+                <form action="cticket_db.php" method="post" autocomplete="off">          
+                    <div class="row px-2">
+                   
+                        <label class="form-label col-lg-3 col-md-6" for="date">Date  
+                            <input class="form-control" id="date" type="date" name="date" value="<?php echo $date ?>">              
+                        </label>
+                
+                        <label class="form-label col-lg-3 col-md-6" for="user">Created By                   
+                            <!-- <input class="form-control" id="user" type="text" name="user" value="<?php echo $sname ?>" onFocus="Searchname(this)" > -->
+                            <select name="user" id="user" class="form-control user">
+                                <option></option>
+                                <?php 
+                                    $query = "SELECT sortname1  FROM [Workbook].[dbo].[user] where sortname1 is not NULL";
+                                    $run = sqlsrv_query($conn,$query);
+                                    while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
+                                ?>
+                                <option <?php if($row['sortname1']==$sname){ ?> selected <?php  } ?>><?php echo $row['sortname1'] ?></option>
+                                <?php } ?>
+                            </select>
+                        </label>
+                    
+                        <label class="form-label col-lg-3 col-md-6" for="mcno">M/c No                     
+                            <input class="form-control" id="mcno" type="text" name="mcno" onFocus="Searchmc(this)" >
+                        </label>
+    
+                        <label class="form-label col-lg-3 col-md-6" for="dept">Department
+                            <input class="form-control" id="dept" type="text" name="dept"  >
+                        </label>    
+                 
+                        <label class="form-label col-lg-3 col-md-6" for="plant">Plant                    
+                            <!-- <input class="form-control" id="plant" type="text" name="plant" value=""> -->
+                            <select class="form-select" name="plant" id="plant" >
+                                <option selected default value=""></option>
+                                <option value="1701">1701</option>
+                                <option value="696">696</option>
+                                <option value="2205">2205</option>
+                                <option value="Jarod">Jarod</option>
+                            </select>
+                        </label>
+                
+                        <label class="form-label col-lg-3 col-md-6" for="issue">Issue/Problem
+                            <input class="form-control" id="issue" type="text" name="issue" value="">
           
-            buttons: [
-		 		'pageLength','copy', 'excel',
-                {
-                    text:'ViewAll', className:'viewall',
-                    action:function(){
-                        $('#spinLoader').html('<span class="spinner-border spinner-border-lg mx-2"></span><p>Loading..</p>');
-                        $('#putTable').css({"opacity":"0.5"});
+                        </label>
 
-                        $.ajax({
-                            url:'aticket_view.php',
-                            type:'post',
-                            data:{ },
-                            success:function(data){
-                                $('#putTable').html(data);
-                                $('#spinLoader').html('');
-                                $('#putTable').css({"opacity":"1"});
-                            }
-                        });
-                    }
-                },
-        	],
-            language: {
-                searchPlaceholder: "Search..."
-            }
-        });
-    });
+                        <label class="form-label col-lg-3 col-md-6" for="sel">Camera/Audio/Video     
+                            <div class="input-group">
+                                <select  name="sel" id="sel" class="form-control " >
+                                    <option value=""></option>
+                                    <option value="cam">Camera</option>
+                                    <option value="aud">Audio</option>
+                                    <option value="vid">Video</option>
+                                </select>
+                                <!-- <input class="form-control  custom-width hidden" type="number" id="numberOfParts" name="numberOfParts" placeholder="no. of parts"> -->
+                                <input  class="form-control  hidden " type="file" accept="image/*" name="img" id="img"  style="width:50%;">
+                                <input class="form-control  hidden " type="file" accept="audio/*"  name="audio" id="audio" style="width:50%;" >
+                                <input class="form-control  hidden " type="file" accept="video/*"  name="video" id="video" style="width:50%;"    >
+                            </div>
+                       
+                        </label>
+                        <script>
+            // Get the select element and input element
+            var partsChangeSelect = document.getElementById('sel');
+            var img = document.getElementById('img');
+            var audio = document.getElementById('audio');
+            var video = document.getElementById('video');
+
+            partsChangeSelect.addEventListener('change', function () {
+                // Check if the selected value is 'yes'
+                if (partsChangeSelect.value === 'cam') {                
+                    img.classList.remove('hidden');
+                    audio.classList.add('hidden');
+                    video.classList.add('hidden');
+
+                } else if(partsChangeSelect.value === 'Audio') {               
+                    audio.classList.remove('hidden');
+                    img.classList.add('hidden');
+                    video.classList.add('hidden');
+                }
+                else{
+                    video.classList.remove('hidden');
+                    img.classList.add('hidden');
+                    audio.classList.add('hidden');
+                }
+            });  
         </script>
+
+                        <!-- <label class="form-label col-lg-3 col-md-6" for="img">Camera/Audio/Video                   
+                            <div class="tog">
+                            <input  class="form-control" type="file" accept="image/*" name="img" id="img" required>
+                            <input class="form-control" type="file" accept="audio/*"  name="audio" id="audio" >
+                            <input class="form-control" type="file" accept="video/*"  name="video" id="video"     >
+                            </div>
+                        </label> -->
+                
+                        <label class="form-label col-lg-3 col-md-6" for="remark">Remark                   
+                            <input class="form-control" id="remark" type="text" name="remark" value="">
+                        </label>
+                        </div> 
+                        <div class="row ps-2 mt-2">
+                        <label class="form-label col-lg-3 col-md-6" for="pstop">Production Stopped?
+                                <select class="form-select" name="pstop" id="pstop">
+                                    <option value=""></option>
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                        </label>   
+                   
+                        <label  class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
+                            <br>
+                            <input class="form-check-input" type="radio" name="priority" value="low" id="flexRadioDefault1">
+                            <label class="form-check-label" for="flexRadioDefault1">
+                                Low
+                            </label>
+                                            
+                            <input class="form-check-input" type="radio" name="priority" value="medium" id="flexRadioDefault2" checked>
+                            <label class="form-check-label" for="flexRadioDefault2">
+                                Medium
+                            </label>
+                                            
+                            <input class="form-check-input" type="radio" name="priority" value="high" id="flexRadioDefault3" >
+                            <label class="form-check-label" for="flexRadioDefault3">
+                                High
+                            </label>                    
+                        </label>
+                        
+                        <div class="col"></div>
+                        <div class="col-auto mt-2">
+                            <a href="cticket.php" type="button" class="btn rounded-pill btn-danger mt-3">Back</a>
+                            <button type="submit" class="btn rounded-pill btn-success  mt-3" name="save" >Save</button>                             
+                        </div>                      
+                    </div>                             
+                </form>
+            </div>
+        </div>
+    </body>
+</html>
+<!-- dropdown serching selected2 -->
+<script src='../js/select2.min.js' type='text/javascript'></script>
+<script>
+    $(document).ready(function() {
+		$(".user").select2();
+	});
+
+  $('#cticket').addClass('active');
+  
+    function Searchname(txtBoxRef) {
+
+    var f = true; //check if enter is detected
+    $(txtBoxRef).keypress(function (e) {
+        if (e.keyCode == '13' || e.which == '13'){
+            f = false;
+        }
+    });
+    $(txtBoxRef).autocomplete({      
+        source: function( request, response ){
+            $.ajax({
+                url: "cticketget_data.php",
+                type: 'post',
+                dataType: "json",
+                data: {aname: request.term },
+                success: function( data ) {
+                    response( data );
+                },
+                error:function(data){
+                    console.log(data);
+                }
+            });
+        },
+        select: function (event, ui) {
+            $('#user').val(ui.item.label);
+            return false;
+        },
+        change: function (event, ui) {
+            if(f){
+                if (ui.item == null){
+                    $(this).val('');
+                    $(this).focus();
+                }
+            }
+        },
+        open: function () {
+        // Set a higher z-index for the Autocomplete dropdown
+        $('.ui-autocomplete').css('z-index',1500);
+        }
+        });
+  } 
+
+  function Searchmc(txtBoxRef) {
+      
+    var f = true; //check if enter is detected
+    $(txtBoxRef).keypress(function (e) {
+        if (e.keyCode == '13' || e.which == '13'){
+            f = false;
+        }
+    });
+    $(txtBoxRef).autocomplete({      
+    source: function( request, response ){
+            $.ajax({
+                url: "cticketget_data.php",
+                type: 'post',
+                dataType: "json",
+                data: {mcno: request.term },
+                success: function( data ) {
+                response( data );
+            },
+            error:function(data){
+                console.log(data);
+            }
+            });
+    },
+    select: function (event, ui) {
+            $('#mcno').val(ui.item.label);
+            return false;
+        },
+        change: function (event, ui) {
+            if (f){
+                if (ui.item == null){
+                $(this).val('');
+                $(this).focus();
+                }
+        }
+    }
+    });
+}
+$(document).on('change','#mcno',function(){
+   
+    var mc_no=$(this).val();
+    console.log(mc_no)
+    if(mc_no === null || mc_no === ''){
+        //document.getElementById('dept').setAttribute('readonly', true);
+        $.ajax({
+        url:'cticketget_data.php',
+        type:'post',
+        data:{mc_no,mc_no},
+        success:function(data){
+         
+            $('#dept').val(data);
+            $('#dept').prop("readonly", false);
+        }
+    })
+    
+    }else{
+        $.ajax({
+        url:'cticketget_data.php',
+        type:'post',
+        data:{mc_no,mc_no},
+        success:function(data){
+         
+            $('#dept').val(data);
+            $('#dept').prop("readonly", true);
+        }
+    })
+    }
+   
+})
+
+ 
+</script>
+<?php
+
+include('../includes/footer.php');
+?>

@@ -21,8 +21,22 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
             <!-- <input type="hidden" id="srno" name="srno" value="<?php echo $row['srno']   ?>" > -->
         </label>
 
-        <label class="form-label col-lg-3 col-md-6" for="user">Created By     
+        <!-- <label class="form-label col-lg-3 col-md-6" for="user">Created By     
             <input class="form-control" id="user" type="text" name="user" value="<?php echo $row['username'] ?>" readonly>
+        </label> -->
+
+        <label class="form-label col-lg-3 col-md-6" for="user">Created By                   
+            <!-- <input class="form-control" id="user" type="text" name="user" value="<?php echo $sname ?>" onFocus="Searchname(this)" > -->
+            <select name="user" id="user" class="form-control user">
+                <option></option>
+                <?php 
+                    $query = "SELECT sortname1  FROM [Workbook].[dbo].[user] where sortname1 is not NULL";
+                    $run1 = sqlsrv_query($conn,$query);
+                    while($row1=sqlsrv_fetch_array($run1,SQLSRV_FETCH_ASSOC)){
+                ?>
+                <option <?php if($row['username']==$row1['sortname1']){ ?> selected <?php  } ?>><?php echo $row1['sortname1'] ?></option>
+                <?php } ?>
+            </select>
         </label>
 
         <label class="form-label col-lg-3 col-md-6" for="mcno">M/c No

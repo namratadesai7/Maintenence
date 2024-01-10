@@ -5,6 +5,10 @@ include('../includes/header.php');
 <title>
     Assign Ticket
 </title>
+
+<link href='../css/select2.min.css' rel='stylesheet' type='text/css'>
+
+
 <style>
     .divCss {
         background-color: white;
@@ -34,6 +38,14 @@ include('../includes/header.php');
             padding-top: 10px;
         }
       }
+      /*ADD dropdown searching*/
+		.select2-container {
+			max-width: 100%;
+		}
+		.select2-container .select2-selection--single{
+			height:39px !important;
+			border: 1px solid #ccc !important;
+		}
 </style>
 <div class="container-fluid fl" >
         <div class="row mb-3">
@@ -41,8 +53,7 @@ include('../includes/header.php');
             <!-- <div class="col-auto"> <a class="btn btn-warning p-2" href="summary_add.php">+Add</a></div> -->
         </div>
         <form id="report">
-            <div class="divCss ">
-                
+            <div class="divCss ">           
                 <div class="row px-2">
                    
                     <label class="form-label col-lg-3 col-md-6" for="user">Created By     
@@ -62,6 +73,21 @@ include('../includes/header.php');
                             <option value="closed">Closed</option>
                             <option value="delayed">Delayed</option>
                             <option value="transferred">Transferred</option>
+                        </select>
+                    </label>
+                    
+                    
+                    <label class="form-label col-lg-3 col-md-6" for="ticketno">Ticket No.     
+                        <!-- <input type="text" class="form-control searchInput ticketno" name="ticketno" id="ticketno"  placeholder="Ticket No."></input> -->
+                        <select name="ticketno" id="ticketno" class="form-control ticketno">
+                            <option></option>
+                            <?php 
+                                $query = "SELECT srno  FROM ticket ";
+                                $run1 = sqlsrv_query($conn,$query);
+                                while($row1=sqlsrv_fetch_array($run1,SQLSRV_FETCH_ASSOC)){
+                            ?>
+                            <option ><?php echo $row1['srno'] ?></option>
+                            <?php } ?>
                         </select>
                     </label>
                 </div>
@@ -127,7 +153,9 @@ include('../includes/header.php');
                         <th>Parts<br>Change</th>
                         <th>Remarks<br>Team</th>
                         <th>Close<br>Date</th>
-                        <th>Days</th>                       
+                        <th>Days</th>      
+                        <th>Transferred</th>  
+                        <th>Delayed</th>               
                     </tr>
                 </thead>
                 <tbody>
@@ -139,7 +167,11 @@ include('../includes/header.php');
 <?php
 include('../includes/footer.php');
 ?>
+<script src='../js/select2.min.js' type='text/javascript'></script>
 <script>
+       $(document).ready(function() {
+		$(".ticketno").select2();
+	});
   
 $('#report').addClass('active');
 
@@ -148,6 +180,7 @@ $(document).on('click','#search', function(){
  var user=$('#user').val();
  var assignto=$('#assignto').val();
  var pending=$('#pending').val();
+ var ticketno=$('#ticketno').val();
  var cfrom=$('#cfrom').val();
  var cto=$('#cto').val();
  var afrom=$('#afrom').val();
@@ -155,15 +188,11 @@ $(document).on('click','#search', function(){
  var clfrom=$('#clfrom').val();
  var clto=$('#clto').val();
 
- // if(user=='' && date== '' ){
-        
-    //return false;
 
-    // }else{
     $.ajax({    
         url:'report_data.php',
         type:'post',
-        data:{user:user,assignto:assignto,pending:pending,cfrom:cfrom,cto:cto,afrom:afrom,ato:ato,clfrom:clfrom,clto:clto},
+        data:{user:user,assignto:assignto,pending:pending,ticketno:ticketno,cfrom:cfrom,cto:cto,afrom:afrom,ato:ato,clfrom:clfrom,clto:clto},
         success:function(data){
         
             $('#showdata').html(data);
@@ -172,7 +201,7 @@ $(document).on('click','#search', function(){
             console.log(res);
         }
     });
-    // }
+  
 
 });
   function Searchname(txtBoxRef) {

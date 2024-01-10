@@ -10,8 +10,19 @@ $sname=$_SESSION['sname'] ?? '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- included css drop down Serching -->
+	<link href='../css/select2.min.css' rel='stylesheet' type='text/css'>
     <title>Create ticket</title>
     <style>
+        
+        .hidden {
+            display: none;
+        }
+        /* .tog{
+            display:flex;
+        }
+         */
         .divCss {
         background-color: white;
         padding: 20px;
@@ -21,6 +32,15 @@ $sname=$_SESSION['sname'] ?? '';
         .fl{
             margin-top:2rem;
         }
+        /*ADD dropdown searching*/
+		.select2-container {
+			max-width: 100%;
+		}
+		.select2-container .select2-selection--single{
+			height:39px !important;
+			border: 1px solid #ccc !important;
+		}
+
         /* .abc{
             margin:20px;
             padding-top:20px;
@@ -44,6 +64,9 @@ $sname=$_SESSION['sname'] ?? '';
          text-align:center;
          margin-top:40px;
         } */
+
+ 
+
     </style>
 </head>
 <body>
@@ -54,7 +77,7 @@ $sname=$_SESSION['sname'] ?? '';
                 </div>
             </div>
             <div class="divCss">
-                <form action="cticket_db.php" method="post" autocomplete="off">          
+                <form action="cticket_db.php" method="post" autocomplete="off"  enctype="multipart/form-data">          
                     <div class="row px-2">
                    
                         <label class="form-label col-lg-3 col-md-6" for="date">Date  
@@ -62,7 +85,17 @@ $sname=$_SESSION['sname'] ?? '';
                         </label>
                 
                         <label class="form-label col-lg-3 col-md-6" for="user">Created By                   
-                            <input class="form-control" id="user" type="text" name="user" value="<?php echo $sname ?>" onFocus="Searchname(this)" >
+                            <!-- <input class="form-control" id="user" type="text" name="user" value="<?php echo $sname ?>" onFocus="Searchname(this)" > -->
+                            <select name="user" id="user" class="form-control user">
+                                <option></option>
+                                <?php 
+                                    $query = "SELECT sortname1  FROM [Workbook].[dbo].[user] where sortname1 is not NULL";
+                                    $run = sqlsrv_query($conn,$query);
+                                    while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
+                                ?>
+                                <option <?php if($row['sortname1']==$sname){ ?> selected <?php  } ?>><?php echo $row['sortname1'] ?></option>
+                                <?php } ?>
+                            </select>
                         </label>
                     
                         <label class="form-label col-lg-3 col-md-6" for="mcno">M/c No                     
@@ -77,124 +110,204 @@ $sname=$_SESSION['sname'] ?? '';
                             <!-- <input class="form-control" id="plant" type="text" name="plant" value=""> -->
                             <select class="form-select" name="plant" id="plant" >
                                 <option selected default value=""></option>
-                                <option value="107">107</option>
+                                <option value="1701">1701</option>
                                 <option value="696">696</option>
                                 <option value="2205">2205</option>
                                 <option value="Jarod">Jarod</option>
-
                             </select>
                         </label>
-
                 
                         <label class="form-label col-lg-3 col-md-6" for="issue">Issue/Problem
-                            <input class="form-control" id="issue" type="text" name="issue" value="">
-                         <!-- <Audio Controls>
-                             <Source Src="abc.mp3" type="Audio/mpeg" >
-                            <input type="text"> 
-                        </Audio>   -->
+                            <input class="form-control" id="issue" type="text" name="issue" value="" required   >
+          
                         </label>
 
+                        <label class="form-label col-lg-3 col-md-6" for="sel">Camera/Audio/Video     
+                            <div class="input-group">
+                                <select  name="sel" id="sel" class="form-control " >
+                                    <option value=""></option>
+                                    <option value="cam">Camera</option>
+                                    <option value="aud">Audio</option>
+                                    <option value="vid">Video</option>
+                                </select>
+                                <!-- <input class="form-control  custom-width hidden" type="number" id="numberOfParts" name="numberOfParts" placeholder="no. of parts"> -->
+                                <input  class="form-control hidden   " type="file" accept="image/*" name="img" id="img"  style="width:50%;">
+                                <input class="form-control hidden   " type="file" accept="audio/*"  name="audio" id="audio" style="width:50%;" >
+                                <input class="form-control hidden   " type="file" accept="video/*"  name="video" id="video" style="width:50%;"    >
+                            </div>
+                       
+                        </label>
+     
+
+                        <!-- <label class="form-label col-lg-3 col-md-6" for="img">Camera/Audio/Video                   
+                            <div class="tog">
+                            <input  class="form-control" type="file" accept="image/*" name="img" id="img" required>
+                            <input class="form-control" type="file" accept="audio/*"  name="audio" id="audio" >
+                            <input class="form-control" type="file" accept="video/*"  name="video" id="video"     >
+                            </div>
+                        </label> -->
                 
                         <label class="form-label col-lg-3 col-md-6" for="remark">Remark                   
                             <input class="form-control" id="remark" type="text" name="remark" value="">
-                            </label>
-                        <!--                       
-                        <label class="form-label col-lg-3 col-md-6" for="priority">Priority -->
-                            <!-- <input class="form-control" id="priority" type="text" name="priority" value=""> -->
-                            <!-- <select name="priority" id="priority" class="form-control mt-1">
-                                <option value=""></option>
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
-                                <option value="high">High</option>
-                            </select>
-                        </label> -->
-                     
+                        </label>
+                        </div> 
+                        <div class="row ps-2 mt-2">
                         <label class="form-label col-lg-3 col-md-6" for="pstop">Production Stopped?
                                 <select class="form-select" name="pstop" id="pstop">
                                     <option value=""></option>
                                     <option value="yes">Yes</option>
                                     <option value="no">No</option>
                                 </select>
-                            </label>   
-
-                    </div> 
-
-                    <div class="row ps-2 mt-2">
-                            <label  class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
-                                    <br>
-                                    <input class="form-check-input" type="radio" name="priority" value="low" id="flexRadioDefault1">
-                                    <label class="form-check-label" for="flexRadioDefault1">
-                                        Low
-                                    </label>
-                        
-                               
-                                    <input class="form-check-input" type="radio" name="priority" value="medium" id="flexRadioDefault2" checked>
-                                    <label class="form-check-label" for="flexRadioDefault2">
-                                        Medium
-                                    </label>
-                        
-                               
-                                    <input class="form-check-input" type="radio" name="priority" value="high" id="flexRadioDefault3" >
-                                    <label class="form-check-label" for="flexRadioDefault3">
-                                        High
-                                    </label>
-                        
+                        </label>   
+                   
+                        <label  class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
+                            <br>
+                            <input class="form-check-input" type="radio" name="priority" value="low" id="flexRadioDefault1">
+                            <label class="form-check-label" for="flexRadioDefault1">
+                                Low
                             </label>
+                                            
+                            <input class="form-check-input" type="radio" name="priority" value="medium" id="flexRadioDefault2" checked>
+                            <label class="form-check-label" for="flexRadioDefault2">
+                                Medium
+                            </label>
+                                            
+                            <input class="form-check-input" type="radio" name="priority" value="high" id="flexRadioDefault3" >
+                            <label class="form-check-label" for="flexRadioDefault3">
+                                High
+                            </label>                    
+                        </label>
                         
-                            <div class="col"></div>
-                            <div class="col-auto mt-2">
-                                <a href="cticket.php" type="button" class="btn rounded-pill btn-danger mt-3">Back</a>
-                                <button type="submit" class="btn rounded-pill btn-success  mt-3" name="save" >Save</button>                             
-                            </div>                      
-                    </div> 
-                             
+                        <div class="col"></div>
+                        <div class="col-auto mt-2">
+                            <a href="cticket.php" type="button" class="btn rounded-pill btn-danger mt-3">Back</a>
+                            <button type="submit" class="btn rounded-pill btn-success  mt-3" name="save" >Save</button>                             
+                        </div>                      
+                    </div>                             
                 </form>
             </div>
         </div>
     </body>
 </html>
-
+<!-- dropdown serching selected2 -->
+<script src='../js/select2.min.js' type='text/javascript'></script>
 <script>
-  $('#cticket').addClass('active');
+    $(document).ready(function() {
+		$(".user").select2();
+	});
 
-  function Searchmc(txtBoxRef) {
+
+   
+            // Get the select element and input element
+          
+                var partsChangeSelect = document.getElementById('sel');
+                var img = document.getElementById('img');
+                console.log(img)
+                var audio = document.getElementById('audio');
+                var video = document.getElementById('video');
+          
       
-      var f = true; //check if enter is detected
+            partsChangeSelect.addEventListener('change', function () {
+                // Check if the selected value is 'yes'
+                if (partsChangeSelect.value === 'cam') { 
+                     
+                    img.classList.remove('hidden');
+                    audio.classList.add('hidden');
+                    video.classList.add('hidden');
+                 
+
+                } else if(partsChangeSelect.value === 'aud') {            
+                    audio.classList.remove('hidden');
+                    img.classList.add('hidden');
+                    video.classList.add('hidden');
+                }
+                else{
+                    video.classList.remove('hidden');
+                    img.classList.add('hidden');
+                    audio.classList.add('hidden');
+                }
+            });  
+        
+    $('#cticket').addClass('active');
+  
+    function Searchname(txtBoxRef) {
+
+    var f = true; //check if enter is detected
     $(txtBoxRef).keypress(function (e) {
         if (e.keyCode == '13' || e.which == '13'){
             f = false;
         }
     });
-       $(txtBoxRef).autocomplete({      
+    $(txtBoxRef).autocomplete({      
         source: function( request, response ){
-               $.ajax({
-                 url: "cticketget_data.php",
-                  type: 'post',
-                  dataType: "json",
-                  data: {mcno: request.term },
-                  success: function( data ) {
+            $.ajax({
+                url: "cticketget_data.php",
+                type: 'post',
+                dataType: "json",
+                data: {aname: request.term },
+                success: function( data ) {
                     response( data );
                 },
                 error:function(data){
                     console.log(data);
                 }
-              });
+            });
         },
         select: function (event, ui) {
-               $('#mcno').val(ui.item.label);
-          
-           
-               return false;
-          },
-          change: function (event, ui) {
-              if (f){
-                  if (ui.item == null){
+            $('#user').val(ui.item.label);
+            return false;
+        },
+        change: function (event, ui) {
+            if(f){
+                if (ui.item == null){
                     $(this).val('');
                     $(this).focus();
-                  }
+                }
             }
+        },
+        open: function () {
+        // Set a higher z-index for the Autocomplete dropdown
+        $('.ui-autocomplete').css('z-index',1500);
         }
-      });
+        });
+  } 
+
+  function Searchmc(txtBoxRef) {
+      
+    var f = true; //check if enter is detected
+    $(txtBoxRef).keypress(function (e) {
+        if (e.keyCode == '13' || e.which == '13'){
+            f = false;
+        }
+    });
+    $(txtBoxRef).autocomplete({      
+    source: function( request, response ){
+            $.ajax({
+                url: "cticketget_data.php",
+                type: 'post',
+                dataType: "json",
+                data: {mcno: request.term },
+                success: function( data ) {
+                response( data );
+            },
+            error:function(data){
+                console.log(data);
+            }
+            });
+    },
+    select: function (event, ui) {
+            $('#mcno').val(ui.item.label);
+            return false;
+        },
+        change: function (event, ui) {
+            if (f){
+                if (ui.item == null){
+                $(this).val('');
+                $(this).focus();
+                }
+        }
+    }
+    });
 }
 $(document).on('change','#mcno',function(){
    

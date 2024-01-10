@@ -4,16 +4,34 @@ session_start();
 
 $condition='';
 if( $_SESSION['urights']!="admin"){
+    $sql="SELECT u.Status,a.istransfer,a.srno,t.srno as tsr,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
+        a.assign_date,a.approx_time,a.unit,a.update_assign,
+        a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark,u.ticketid,u.Status
 
-    $condition.=" and a.assign_to='".$_SESSION['sname']."' and (u.istransfer='0' or u.istransfer is null) and (CONCAT(t.srno,'/',u.createdAt) in 
-    (select CONCAT(ticketid,'/',max(createdAt)) from uwticket_head group by ticketid) OR u.createdAt is NULL) ";
+        FROM assign a full outer join ticket t on a.ticket_id=t.srno
+        full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and assign_to is not null
+        and a.assign_to='".$_SESSION['sname']."' and (u.istransfer='0' or u.istransfer is null) and (CONCAT(t.srno,'/',u.createdAt) in 
+     (select CONCAT(ticketid,'/',max(createdAt)) from uwticket_head group by ticketid) OR u.createdAt is NULL)";
+
+    // $condition.=" and a.assign_to='".$_SESSION['sname']."' and (u.istransfer='0' or u.istransfer is null) and (CONCAT(t.srno,'/',u.createdAt) in 
+    // (select CONCAT(ticketid,'/',max(createdAt)) from uwticket_head group by ticketid) OR u.createdAt is NULL) ";
+}else{
+    $sql="WITH XYZ as(SELECT COUNT(*) AS cnt, ticketid
+            FROM uwticket_head 
+            GROUP BY ticketid HAVING  COUNT(*) % 2 = 1 
+            AND SUM(CASE WHEN status = 'transfer' THEN 1 ELSE 0 END) > 0
+            )
+          
+            SELECT u.Status,a.istransfer,u.istransfer,a.srno,t.srno as tsr,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
+            a.assign_date,a.approx_time,a.unit,a.update_assign,
+            a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark,u.ticketid,u.Status
+
+            FROM assign a full outer join ticket t on a.ticket_id=t.srno
+            full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and a.istransfer=1 and u.istransfer=1 or ( u.Status='closed' and a.istransfer=0) or ( u.Status='delay' and a.istransfer=0) 
+            or ticketid in(select ticketid from xyz)  OR u.createdAt is NULL and assign_to is not null ";
+
 }
-$sql="SELECT u.Status,a.istransfer,a.srno,t.srno as tsr,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
-a.assign_date,a.approx_time,a.unit,a.update_assign,
-a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark,u.ticketid,u.Status
 
-FROM assign a full outer join ticket t on a.ticket_id=t.srno
-full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and assign_to is not null".$condition;
 $run=sqlsrv_query($conn,$sql);
 
 ?>
@@ -70,12 +88,39 @@ $run=sqlsrv_query($conn,$sql);
                 ?>
                 <tr>
                     <td><?php echo $sr;   ?></td>
-                    <td style="padding: 3px 6px !important;">
+                    <!-- <td style="padding: 3px 6px !important;">
                         <button type="button" class="btn btn-sm rounded-pill btn-primary close" 
                         <?php if($row['Status']=="closed") {?> disabled <?php
                         } ?>
                         id="<?php echo $row['ticket_id'] ?>" 
                         data-name="<?php echo $row['srno'] ?>">Action</button>
+                    </td> -->
+                    <td style="padding: 3px 6px !important;">
+                    <?php
+                        $sql1=" SELECT COUNT(*) AS cnt, ticketid
+                        FROM uwticket_head 
+                        GROUP BY ticketid HAVING  COUNT(*) > 1 
+                        AND SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) > 0 and ticketid='".$row['tsr']."'";
+                        $run1=sqlsrv_query($conn,$sql1);
+                        $row1=sqlsrv_fetch_array($run1,SQLSRV_FETCH_ASSOC);
+                        $ticket=$row1['ticketid'] ?? '';
+                        ?>
+                    <?php
+                   
+                        if($row['Status'] == 'transfer' || $row['Status'] == 'closed' || $row['tsr']== $ticket){ ?>
+                            <button type="button" class="btn btn-sm rounded-pill btn-primary recordexist" 
+                               >Action</button>                      
+                            <?php } else{
+                                ?>
+                             <button type="button" class="btn btn-sm rounded-pill btn-primary close" 
+                            id="<?php echo $row['ticket_id'] ?>" 
+                            data-name="<?php echo $row['srno'] ?>">Action</button>
+
+<?php
+
+                    } 
+                
+                    ?>
                     </td>
                     <td><?php echo $row['tsr'] ?></td>
                     <td><?php echo $row['priority'] ?></td>
@@ -144,8 +189,7 @@ $run=sqlsrv_query($conn,$sql);
             <?php
                }
             ?>             
-                <td><?php echo $difference ?></td>
-                    
+                <td><?php echo $difference ?></td>         
                 <?php
                 $sr++;
                     }

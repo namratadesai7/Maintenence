@@ -2,25 +2,41 @@
 include('../includes/dbcon.php');
 session_start();
 
-$condition='';
-if( $_SESSION['urights']!="admin"){
+// $condition='';
+// if( $_SESSION['urights']!="admin"){
 
-    $condition.="    ";
-}
+//     $condition.="    ";
+// }
 
-$sql="	WITH abc AS (
+// $sql="	WITH abc AS (
 
-    SELECT COUNT(*) AS cnt, ticket_id
-    FROM assign
-    GROUP BY ticket_id
-    HAVING COUNT(*) % 2 = 0
-    )
+//     SELECT COUNT(*) AS cnt, ticket_id
+//     FROM assign
+//     GROUP BY ticket_id
+//     HAVING COUNT(*) % 2 = 0
+//     )
+// SELECT a.istransfer,u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,u.ticketid,a.assign_to,format(a.assign_date,'dd-MM-yyyy') as adate,a.approx_time,a.unit,a.istransfer,t.priority,
+// a.update_assign,a.srno as asr FROM assign a full outer join ticket t on a.ticket_id =t.srno
+// full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0 and (u.Status <>'closed' or u.Status is null) and assign_to is not null AND a.istransfer=0  
+// and ticket_id  in(select ticket_id from abc) or ticketid is null and a.istransfer is not  null".$condition;
+
+
+$sql="	WITH pqr as(SELECT COUNT(*) AS cnt, ticketid
+        FROM uwticket_head 
+        GROUP BY ticketid HAVING  COUNT(*) % 2 = 0
+        AND SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) > 0
+        ),
+        transfer as(SELECT COUNT(*) AS cnt, ticketid
+        FROM uwticket_head 
+        GROUP BY ticketid HAVING  COUNT(*)  = 1 
+        AND SUM(CASE WHEN status = 'transfer' THEN 1 ELSE 0 END) > 0 
+
+)
 SELECT a.istransfer,u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,u.ticketid,a.assign_to,format(a.assign_date,'dd-MM-yyyy') as adate,a.approx_time,a.unit,a.istransfer,t.priority,
 a.update_assign,a.srno as asr FROM assign a full outer join ticket t on a.ticket_id =t.srno
-full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0 and (u.Status <>'closed' or u.Status is null) and assign_to is not null AND a.istransfer=0  
-and ticket_id  in(select ticket_id from abc) or ticketid is null and a.istransfer is not  null".$condition;
+full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and	ticket_id not in( select ticketid from pqr) and ticket_id  in(select ticketid from transfer)
+and a.istransfer<>1 and a.istransfer is not null   or ticketid is null and assign_to is not null";
 $run = sqlsrv_query($conn, $sql);
-
 
 ?>
 <table class="table table-bordered table-striped pt-2" id="assignTable">

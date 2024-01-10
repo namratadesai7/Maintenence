@@ -105,15 +105,15 @@ $date=date('Y-m-d');
                     format(enddate,'dd-MM-yyyy') as caldate FROM workdetail  order by sr ASC";
                     $run=sqlsrv_query($conn,$sql);
                     while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
-                         if($row['completed_date'] !== null || $row['sdate']=='01-01-1900' ) {
-                            $difference = ''; // Set delay days to blank
-                         }else {
-                             // Calculate the difference in days
-                             $endDate = new DateTime($row['caldat']);
-                             $currentDate = new DateTime();
-                    
-                             $difference = $currentDate >= $endDate ? $currentDate->diff($endDate)->format("%a") : -($endDate->diff($currentDate)->format("%a"));
-                         }
+                        if($row['completed_date'] !== null || $row['sdate']=='01-01-1900' ) {
+                        $difference = ''; // Set delay days to blank
+                        }else {
+                            // Calculate the difference in days
+                            $endDate = new DateTime($row['caldat']);
+                            $currentDate = new DateTime();
+                
+                            $difference = $currentDate >= $endDate ? $currentDate->diff($endDate)->format("%a") : -($endDate->diff($currentDate)->format("%a"));
+                        }
                 ?>
                 <tr>
                     <td><?php echo $sr;   ?></td>

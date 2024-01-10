@@ -3,7 +3,10 @@
 include('../includes/dbcon.php');
 session_start();
 
+
 if(isset($_POST['save'])){
+    $date=date_create();
+    $tstamp=date_timestamp_get($date);
     $date=$_POST['date'];
     $user=$_POST['user'];
     $mcno=$_POST['mcno'];
@@ -13,17 +16,47 @@ if(isset($_POST['save'])){
     $remark=$_POST['remark'];
     $priority=$_POST['priority'];
     $pstop=$_POST['pstop'];
+    $img=$_FILES['img']['name']  ?? '';
+ 
+    if($img!=''){
+        $imgExt = substr($img, strripos($img, '.')); // get file extention
+        $imgname = $user.$tstamp.$imgExt;
     
+        move_uploaded_file($_FILES["img"]["tmp_name"] ?? '', "../file/image-upload/" .$imgname);
+    }else{
+        $imgname='';
+    }
+ 
+    $audio = $_FILES['audio']['name'] ??'';
+       
+    if($audio!=''){
+        $audioExt = substr($audio, strripos($audio, '.')); // get file extention
+        $audioname =  $user.$tstamp.$audioExt;  
+        move_uploaded_file($_FILES["audio"]["tmp_name"] ?? '', "../file/audio-upload/" .$audioname);
+    }else{
+        $audioname='';
+    }
+   
 
-    $sql="INSERT INTO ticket (date,username,mcno,department,plant,issue,remark,priority,pstop,createdBy)
-     VALUES('$date','$user','$mcno','$dept','$plant','$issue','$remark','$priority','$pstop','".$_SESSION['empid']."')";
+    $video = $_FILES['video']['name'] ??'';
+    // $videoExt = substr($video, strripos($video, '.')); // get file extention
+    if($video!=''){
+        $videoExt ='.mp4';
+        $videoname =  $user.$tstamp.$videoExt;
+        move_uploaded_file($_FILES["video"]["tmp_name"] ?? '', "../file/video-upload/" .$videoname);
+    }else{
+        $videoname='';
+    }
+    
+    $sql="INSERT INTO ticket (date,username,mcno,department,plant,issue,remark,priority,pstop,createdBy,image,audio,video)
+        VALUES('$date','$user','$mcno','$dept','$plant','$issue','$remark','$priority','$pstop','".$_SESSION['empid']."','$imgname','$audioname','$videoname')";
 
     $run=sqlsrv_query($conn,$sql);
 
      if($run){
         ?>
     <script>
-            window.open('cticket.php','_self');
+       window.open('cticket.php','_self');
     </script>
     <?php
      }else{

@@ -14,6 +14,16 @@ if( $_SESSION['urights']!="admin"){
 ?>
 
 <style>
+     #aud{
+        width:80px ;
+        height: 40px;
+    }
+    #imgc{
+        display:flex;
+        flex-direction:row;
+        justify-content:center !important;
+       
+    }
     .divCss {
         background-color: white;
         padding: 20px;
@@ -59,11 +69,14 @@ if( $_SESSION['urights']!="admin"){
         font-size: 15px;
         padding: 8px 15px 8px 8px;
     }
+
     #ctickettable td{
         white-space: nowrap;
         font-size: 14px;
-    
+        text-align:center !important;
+        /* padding: 30px 6px 10px 6px !important; */
         font-weight:500;
+        text-align:center;
     }
     @media only screen and (max-width:1700px) {
         #ctickettable{
@@ -147,6 +160,7 @@ if( $_SESSION['urights']!="admin"){
                         <th>Department </th>
                         <th>Plant</th>
                         <th >Issue</th>
+                        <th>Img/Aud/Vid</th>
                         <th>Remark</th>
                         <th>Assign<br>to </th>
                         <th>Approx<br>time</th>
@@ -157,7 +171,7 @@ if( $_SESSION['urights']!="admin"){
                 <tbody> 
                     <?php
                         $sr=1;
-                        $sql="SELECT u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,u.ticketid,a.assign_to,a.approx_time,a.unit,a.istransfer,u.istransfer as utrans
+                        $sql="SELECT top 100 u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,t.image,t.audio,t.video,u.ticketid,a.assign_to,a.approx_time,a.unit,a.istransfer,u.istransfer as utrans
                         ,a.update_assign FROM assign a full outer join ticket t on a.ticket_id =t.srno
                         full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  ".$condition;
                         
@@ -171,7 +185,7 @@ if( $_SESSION['urights']!="admin"){
                         ?>
                     <tr>
                         <td><?php echo $sr ?></td>
-                      
+                        <!-- style="padding: 3px 6px !important;" -->
                         <td style="padding: 3px 6px !important;"><button type="button" class="btn btn-sm rounded-pill btn-primary edit" id="<?php echo $row['srno']  ?>" >Edit</button>
                             <button type="button" class="btn btn-sm rounded-pill btn-danger delete" id="<?php echo $row['srno']  ?>"><i class="fa-solid fa-trash"></i></button>
                         </td>
@@ -230,10 +244,34 @@ if( $_SESSION['urights']!="admin"){
                                 <?php echo $row['issue'] ?>
                             <span class="tooltiptext"><?php echo $row['issue'] ?></span>
                         </td>
+                        <td  style="padding: 3px 6px !important;" id="img"  data-name="<?php echo $row['srno'] ?>"
+>
+                            <?php
+                             if($row['image']!=''){
+                                ?>
+                                <img  src="../file/image-upload/<?php echo $row['image'] ?>" width="80" height="60">
+                                <?php
+                             }else if($row['audio']!=''){ ?>
+                                <audio id="aud"   controls>
+                                    <source src="../file/audio-upload/<?php echo $row['audio'] ?>" type="audio/mp3"   > 
+                                        Your browser does not support the audio element.
+                                </audio>   <?php
+                             }else if($row['video']!=''){ ?>
+                                <video id="vid" width="80" height="60" controls>
+                                    <source src="../file/video-upload/<?php echo $row['video'] ?>" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                </video>
+                             <?php
+                             }else{
+
+                             }
+                            ?>
+                        </td>
                         <td class="tooltip-cell" title="<?php echo $row['remark'] ?>" style="max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 <?php echo $row['remark'] ?>
                             <span class="tooltiptext"><?php echo $row['remark'] ?></span>
                         </td>    
+                        
                 
                         <!-- <td><?php echo $row['issue'] ?></td>
                         <td><?php echo $row['remark'] ?></td> -->
@@ -251,6 +289,27 @@ if( $_SESSION['urights']!="admin"){
            </table>
         </div>
     </div>
+        <!-- modal for assign -->
+    <div class="modal fade" id="imgvidaud" tabindex="-1" aria-labelledby="imgvidaud" aria-hidden="true">
+        <div class="modal-dialog modal-xl ">
+            <div class="modal-content">
+                <div class="modal-header ">
+                    <h5 class="modal-title">Image/Audio/Video</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="imgaud">
+                    <?php 
+
+
+                    ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn rounded-pill bg-secondary text-light"
+                        data-bs-dismiss="modal">Close</button>       
+                </div>
+            </div>
+        </div>
+    </div>   
     <body>
    
     </body>
@@ -258,30 +317,180 @@ if( $_SESSION['urights']!="admin"){
 <script>
   $('#cticket').addClass('active');
 
-   // datatable to table
-   $(document).ready(function() {
-        $('#ctickettable').DataTable({
-            "processing": true,
-            "lengthMenu": [10, 25, 50, 75, 100],
-            "responsive": {
-                "details": true
-            },
-            "columnDefs": [{
-                "className": "dt-center",
-                "targets": "_all"
-            }],
-            dom: 'Bfrtip',
-            ordering: true,
-            destroy: true,
-          
-            buttons: [
-		 		'pageLength','copy', 'excel'
-        	],
-            language: {
-                searchPlaceholder: "Search..."
-            }
+    $(document).on('click', '#img', function() {
+        var id=$(this).data('name');
+        console.log(id);
+            
+            $.ajax({
+                url: 'cticket_img.php',
+                dataType:'json',
+                type: 'post',
+                data: {id:id       
+                },
+                // dataType:'json',
+            
+                success:function(data) {
+                    console.log(data);
+                       // Clear existing content before appending new content
+                    $('#imgaud').html('');
+
+                    // Iterate through each content entry in the array
+                    data.forEach(function(entry) {
+                        // Create a container for each content type
+                        var container = $('<div id="imgc">');
+
+                        // Append the content to the respective container
+                        container.html(entry.content);
+
+                        // Append the container to the main container (#imgaud)
+                        $('#imgaud').append(container);
+                    });
+                        $('#imgvidaud').modal('show');
+                },
+                error:function(data){
+                    console.log(data);
+                }
+            });
+
         });
+   // datatable to table
+//    $(document).ready(function() {
+//         $('#ctickettable').DataTable({
+//             "processing": true,
+//             "lengthMenu": [10, 25, 50, 75, 100],
+//             "responsive": {
+//                 "details": true
+//             },
+//             "columnDefs": [{
+//                 "className": "dt-center",
+//                 "targets": "_all"
+//             }],
+//             dom: 'Bfrtip',
+//             ordering: true,
+//             destroy: true,
+          
+//             buttons: [
+// 		 		'pageLength','copy', 'excel'
+//         	],
+//             language: {
+//                 searchPlaceholder: "Search..."
+//             }
+//         });
+//     });
+
+// $(document).ready(function() {
+//     var dataTable = $('#ctickettable').DataTable({
+//         "processing": true,
+//         "serverSide": true,
+//         "ajax": {
+//             "url": "server-side-script.php", // Replace with your server-side script
+//             "type": "POST",
+//              "data": function(d) {
+//                 d.start = d.start || 0; // DataTables uses 'start' instead of 'offset'
+//                 d.length = d.length || 10; // Default length if not provided
+//                 d.draw=d.draw|| 1; 
+//             }
+//         },
+//         "lengthMenu": [10, 25, 50, 75, 100],
+//             "responsive": {
+//                 "details": true
+//             },
+//             "columnDefs": [{
+//                 "className": "dt-center",
+//                 "targets": "_all"
+//             }],
+//             dom: 'Bfrtip',
+//             ordering: true,
+//             destroy: true,
+          
+//             buttons: [
+// 		 		'pageLength','copy', 'excel'
+//         	],
+//             language: {
+//                 searchPlaceholder: "Search..."
+//             }
+//         // Other DataTable options...
+//     });
+
+//     // Add a custom "View All" button to show the next chunk of records
+//     console.log('Button created!');
+//     $('<button class="btn btn-primary btn-sm" style="display: block;">View More</button>')
+//         .appendTo('.dataTables_length')
+//         .on('click', function() {
+//             dataTable.page('next').draw('page');
+//         });
+// });
+
+$(document).ready(function() {
+    var initialLength = 100; // Set the initial number of rows to load
+    var isServerSide = false; // Flag to track server-side processing
+
+    var dataTable = $('#ctickettable').DataTable({
+        "processing": true,
+        "serverSide": isServerSide, // Set initial processing mode
+      
+        "lengthMenu": [10, 25, 50, 75], // Include the initialLength in the lengthMenu
+        "responsive": {
+            "details": true
+        },
+        "columnDefs": [{
+            "className": "dt-center",
+            "targets": "_all"
+        }],
+        dom: 'Bfrtip',
+        ordering: true,
+        destroy: true,
+        buttons: [
+            'pageLength', 'copy', 'excel',
+            {
+                    text:'ViewMore', className:'viewMore',
+            }
+        ],
+        language: {
+            searchPlaceholder: "Search..."
+        }
     });
+
+    // Add a custom "View More" button to switch to server-side processing
+    console.log('Button created!');
+    // $('<button class="btn btn-primary btn-sm" style="display: block;">View More</button>')
+    //     .appendTo('.dataTables_length')
+    //     .css('visibility', 'visible') 
+        $('.viewMore').on('click', function() {
+            isServerSide = true; // Switch to server-side processing
+            dataTable.destroy(); // Destroy the current DataTable instance
+            dataTable = $('#ctickettable').DataTable({
+                "processing": true,
+                "serverSide": isServerSide,
+                "ajax": {
+                    "url": "server-side-script.php",
+                    "type": "POST",
+                    "data": function(d) {
+                        d.start = d.start || 0;
+                        d.length = d.length || 10;
+                        // d.draw = d.draw || 1;
+                    }
+                },
+                "lengthMenu": [10, 25, 50, 75, 100],
+                "responsive": {
+                    "details": true
+                },
+                "columnDefs": [{
+                    "className": "dt-center",
+                    "targets": "_all"
+                }],
+                dom: 'Bfrtip',
+                ordering: true,
+                buttons: [
+                    'pageLength', 'copy', 'excel'
+                ],
+                language: {
+                    searchPlaceholder: "Search..."
+                }
+            });
+        });
+});
+
 
   $(document).on('click','.edit',function(){
     var edit=$(this).attr('id');

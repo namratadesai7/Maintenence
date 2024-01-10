@@ -4,27 +4,33 @@ include('../includes/header.php');
 
 $sql="	WITH abc AS (
 
-SELECT COUNT(*) AS cnt, ticket_id
-FROM assign
-GROUP BY ticket_id
-HAVING COUNT(*) % 2 = 0
-)
-SELECT
-   a.istransfer, t.srno, a.ticket_id, t.date, t.username, t.mcno, t.department, t.plant,
-   t.issue, t.remark, t.pstop, a.srno AS asr, a.assign_to, FORMAT(assign_date, 'yyyy-MM-dd') AS adate,
-   a.approx_time, t.priority, t.pstop, a.unit, a.update_assign, a.cat, a.subcat, a.role,
-   u.resolved_time, u.approx_cdate
-FROM
-   assign a
-FULL OUTER JOIN
-   ticket t ON a.ticket_id = t.srno
-FULL OUTER JOIN
-   uwticket_head u ON u.ticketid = a.ticket_id
-
-WHERE
- t.isdelete=0 and (approx_cdate='1900-01-01' and  resolved_time='')
- and ticket_id not in(select ticket_id from abc
-) or assign_to is null
+    SELECT COUNT(*) AS cnt, ticket_id
+    FROM assign
+    GROUP BY ticket_id
+    HAVING COUNT(*) % 2 = 0 
+    
+    ),
+     XYZ as(SELECT COUNT(*) AS cnt, ticketid
+        FROM uwticket_head 
+        GROUP BY ticketid HAVING  COUNT(*) % 2 = 1 
+    AND SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) > 0
+    )
+    SELECT top 200
+       a.istransfer, t.srno, a.ticket_id, t.date, t.username, t.mcno, t.department, t.plant,
+       t.issue, t.remark, t.pstop,t.image,t.audio,t.video,a.srno AS asr, a.assign_to, FORMAT(assign_date, 'yyyy-MM-dd') AS adate,
+       a.approx_time, t.priority, t.pstop, a.unit, a.update_assign, a.cat, a.subcat, a.role,
+       u.resolved_time, u.approx_cdate
+    FROM
+       assign a
+    FULL OUTER JOIN
+       ticket t ON a.ticket_id = t.srno
+    FULL OUTER JOIN
+       uwticket_head u ON u.ticketid = a.ticket_id
+    
+    WHERE
+     t.isdelete=0 and (approx_cdate='1900-01-01' and  resolved_time='')
+     and ticket_id not in(select ticket_id from abc
+    ) and ticket_id not in(select ticketid from xyz)or assign_to is null
 ";
 $run =sqlsrv_query($conn,$sql);
 $at=$row1['assign_to'] ?? '' ;
@@ -33,6 +39,14 @@ $at=$row1['assign_to'] ?? '' ;
     Assign Ticket
 </title>
 <style>
+      #aud{
+        width:80px ;
+        height: 40px;
+    }
+    #imgc{
+        display:flex;
+        justify-content:center;
+    }
     .divCss {
         background-color: white;
         padding: 20px;
@@ -111,6 +125,7 @@ $at=$row1['assign_to'] ?? '' ;
                     <th>Department</th>
                     <th>Plant</th>
                     <th>Issue</th>
+                    <th>Img/Aud/Vid</th>
                     <th>Remark</th>
                     <th>Assign<br>To</th>
                     <th>Assign<br>Date</th>
@@ -146,7 +161,6 @@ $at=$row1['assign_to'] ?? '' ;
                             <td> <?php echo $row['pstop'] ?></td>
                             <?php
                             if($row['ticket_id']==null){
-
                                 ?>
                                 <td class="st">Unassigned</td>
                                 <?php
@@ -162,6 +176,29 @@ $at=$row1['assign_to'] ?? '' ;
                             <td><?php echo $row['department']?></td>
                             <td><?php echo $row['plant']?></td>
                             <td><?php echo $row['issue']?></td>
+
+                            <td  style="padding: 3px 6px !important;" id="img"  data-name="<?php echo $row['srno'] ?>">
+                            <?php
+                             if($row['image']!=''){
+                                ?>
+                                <img  src="../file/image-upload/<?php echo $row['image'] ?>" width="80" height="60">
+                                <?php
+                             }else if($row['audio']!=''){ ?>
+                                <audio id="aud"   controls>
+                                        <source src="../file/audio-upload/<?php echo $row['audio'] ?>" type="audio/mp3"   > 
+                                        Your browser does not support the audio element.
+                                </audio>   <?php
+                             }else if($row['video']!=''){ ?>
+                                <video id="vid" width="80" height="60" controls>
+                                    <source src="../file/video-upload/<?php echo $row['video'] ?>" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                             <?php
+                             }else{
+
+                             }
+                            ?>
+                        </td>
                             <td><?php echo $row['remark']?></td>
                             <td><?php echo $row['assign_to'] ?? '' ?></td>
                             <td> <?php echo $row['adate'] ?? '' ?></td>
@@ -223,11 +260,69 @@ $at=$row1['assign_to'] ?? '' ;
         </div>
     </div>                    
 </div>
+<!-- modal for image -->
+<div class="modal fade" id="imgvidaud" tabindex="-1" aria-labelledby="imgvidaud" aria-hidden="true">
+    <div class="modal-dialog modal-xl ">
+        <div class="modal-content">
+            <div class="modal-header ">
+                <h5 class="modal-title">Image/Audio/Video</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="imgaud">
+                <?php 
+
+
+                ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn rounded-pill bg-secondary text-light"
+                    data-bs-dismiss="modal">Close</button>       
+            </div>
+        </div>
+    </div>
+</div>   
 <?php
 include('../includes/footer.php');
 ?>
 <script>
     $('#aticket').addClass('active');
+
+    $(document).on('click', '#img', function() {
+    var id=$(this).data('name');
+    console.log(id);
+        
+    $.ajax({
+                url: 'cticket_img.php',
+                dataType:'json',
+                type: 'post',
+                data: {id:id       
+                },
+                // dataType:'json',
+            
+                success:function(data) {
+                    console.log(data);
+                       // Clear existing content before appending new content
+                    $('#imgaud').html('');
+
+                    // Iterate through each content entry in the array
+                    data.forEach(function(entry) {
+                        // Create a container for each content type
+                        var container = $('<div id="imgc">');
+
+                        // Append the content to the respective container
+                        container.html(entry.content);
+
+                        // Append the container to the main container (#imgaud)
+                        $('#imgaud').append(container);
+                    });
+                        $('#imgvidaud').modal('show');
+                },
+                error:function(data){
+                    console.log(data);
+                }
+            });
+
+    });
         
     $(document).on('click', '.assign', function() {
         
@@ -315,8 +410,10 @@ include('../includes/footer.php');
      
     // datatable to table
     $(document).ready(function() {
-        $('#assignTable').DataTable({
+        var isServerSide = false;
+       var dataTable= $('#assignTable').DataTable({
             "processing": true,
+            "serverSide": isServerSide,
             "lengthMenu": [10, 25, 50, 75, 100],
             "responsive": {
                 "details": true
@@ -332,21 +429,21 @@ include('../includes/footer.php');
 		 		'pageLength','copy', 'excel',
                 {
                     text:'ViewAll', className:'viewall',
-                    action:function(){
-                        $('#spinLoader').html('<span class="spinner-border spinner-border-lg mx-2"></span><p>Loading..</p>');
-                        $('#putTable').css({"opacity":"0.5"});
+                    // action:function(){
+                    //     $('#spinLoader').html('<span class="spinner-border spinner-border-lg mx-2"></span><p>Loading..</p>');
+                    //     $('#putTable').css({"opacity":"0.5"});
 
-                        $.ajax({
-                            url:'aticket_view.php',
-                            type:'post',
-                            data:{ },
-                            success:function(data){
-                                $('#putTable').html(data);
-                                $('#spinLoader').html('');
-                                $('#putTable').css({"opacity":"1"});
-                            }
-                        });
-                    }
+                    //     $.ajax({
+                    //         url:'aticket_view.php',
+                    //         type:'post',
+                    //         data:{ },
+                    //         success:function(data){
+                    //             $('#putTable').html(data);
+                    //             $('#spinLoader').html('');
+                    //             $('#putTable').css({"opacity":"1"});
+                    //         }
+                    //     });
+                    // }
                 },
                 {
                     text:'Pending', className:'pending',
@@ -370,6 +467,40 @@ include('../includes/footer.php');
             language: {
                 searchPlaceholder: "Search..."
             }
+        });
+        $('.viewall').on('click', function() {
+            console.log("Sds")
+            isServerSide = true; // Switch to server-side processing
+            dataTable.destroy(); // Destroy the current DataTable instance
+            dataTable = $('#assignTable').DataTable({
+                "processing": true,
+                "serverSide": isServerSide,
+                "ajax": {
+                    "url": "aticket_view.php",
+                    "type": "POST",
+                    "data": function(d) {
+                        d.start = d.start || 0;
+                        d.length = d.length || 10;
+                        // d.draw = d.draw || 1;
+                    }
+                },
+                "lengthMenu": [10, 25, 50, 75, 100],
+                "responsive": {
+                    "details": true
+                },
+                "columnDefs": [{
+                    "className": "dt-center",
+                    "targets": "_all"
+                }],
+                dom: 'Bfrtip',
+                ordering: true,
+                buttons: [
+                    'pageLength', 'copy', 'excel'
+                ],
+                language: {
+                    searchPlaceholder: "Search..."
+                }
+            });
         });
     });
     // $(document).ready(function(){

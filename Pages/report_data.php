@@ -4,6 +4,7 @@ if(isset($_POST['user']) || isset($_POST['assignto']) ||isset($_POST['pending'])
 $user=$_POST['user'];
 $assignto=$_POST['assignto'];
 $pending=$_POST['pending'];
+$ticketno=$_POST['ticketno'];
 $cfrom=$_POST['cfrom'];
 $cto=$_POST['cto'];
 $afrom=$_POST['afrom'];
@@ -28,23 +29,30 @@ $condition.=" and u.c_date between '$clfrom' and '$clto' ";
 if(!empty($assignto)){
     $condition.=" AND a.assign_to='$assignto'";
 }
+if(!empty($ticketno)){
+    $condition.=" AND a.ticket_id='$ticketno'  and (CONCAT(t.srno,'/',u.createdAt) in 
+    (select CONCAT(ticketid,'/',max(createdAt)) from uwticket_head group by ticketid) OR u.createdAt is NULL) and a.istransfer=0";   
+}
 if(!empty($pending)){
     if($pending=="assigned"){
-        $condition.=" and assign_to is not null and (ticketid is null or ticketid in( select ticket_id from abc WHERE CNT=2) )and a.istransfer=0";
-    
+        // $condition.=" and assign_to is not null and (ticketid is null or ticketid in( select ticket_id from abc WHERE CNT=2) )and a.istransfer=0 and (u.Status<> 'closed' or u.status is Null)
+        //  and ticketid not in (select ticketid from closed)";
+    $condition.=" and ticket_id not in( select ticketid from pqr) and ticket_id  in(select ticketid from transfer)	and a.istransfer<>1 and a.istransfer is not null   or ticketid is null and assign_to is not null 
+			     ";
     }else if($pending=="unassigned"){
         $condition.=" and assign_to is null";
     }
     else if($pending=="closed"){
-        $condition.=" and resolved_time is not null and resolved_time <> '' ";
+        $condition.=" and resolved_time is not null and resolved_time <> '' and a.istransfer=0 ";
     }
     else if($pending=="delayed"){
         $condition.=" and approx_cdate <> '1900-01-01'";
     }
     else if($pending=="transferred"){
         // $condition.=" and u.istransfer=1 and a.istransfer=1 or ticketid in(select ticket_id from abc where cnt=1)";
-        $condition.=" and ticketid in(select ticket_id from abc where cnt=1 or cnt=2) and (CONCAT(t.srno,'/',a.createdAt) in 
-        (select CONCAT(ticket_id,'/',min(createdAt)) from assign group by ticket_id) OR a.createdAt is NULL)  ";
+        $condition.=" AND ticketid in(select ticket_id from abc ) and Status='transfer'
+        and (CONCAT(t.srno,'/',a.createdAt) in 
+        (select CONCAT(ticket_id,'/',min(createdAt)) from assign group by ticket_id) )  ";
     }  
 }
 ?>
@@ -138,14 +146,39 @@ if(!empty($pending)){
                 <th>Remarks Team</th>
                 <th>CloseDate</th>
                 <th>Days</th>                    
+                <th>Transferred</th>  
+                <th> Delay</th>             
             </tr>
         </thead>
         <tbody>
         <?php
         $sql=" WITH abc as( 
-                select count(*) as cnt, a.ticket_id
-                from assign a full outer join uwticket_head u on  u.ticketid=a.ticket_id where u.istransfer=1 GROUP BY ticket_id
-                )
+                    select  COUNT(*) AS cnt, ticketid from uwticket_head 
+				   GROUP BY ticketid having
+                     SUM(CASE WHEN status = 'transfer' THEN 1 ELSE 0 END) > 0
+                ),
+                XYZ as(SELECT COUNT(*) AS cnt, ticketid
+                    FROM uwticket_head 
+                    GROUP BY ticketid HAVING  COUNT(*) % 2 = 1 
+                    AND SUM(CASE WHEN status = 'transfer' THEN 1 ELSE 0 END) > 0
+                    ),
+                closed as(
+                    SELECT COUNT(*) AS cnt, ticketid
+                    FROM uwticket_head 
+                    GROUP BY ticketid HAVING  COUNT(*)> 1 
+                    AND SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) > 0
+                ),
+                pqr as(SELECT COUNT(*) AS cnt, ticketid
+						FROM uwticket_head 
+						GROUP BY ticketid HAVING  COUNT(*) % 2 = 0
+						AND SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) > 0
+						),
+				transfer as(SELECT COUNT(*) AS cnt, ticketid
+						FROM uwticket_head 
+						GROUP BY ticketid HAVING  COUNT(*)  = 1 
+						AND SUM(CASE WHEN status = 'transfer' THEN 1 ELSE 0 END) > 0 
+				
+				) 
                 SELECT a.istransfer as a,u.istransfer,u.ticketid,a.srno,a.priority,t.srno as tsr,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
                 format(a.assign_date,'dd-MM-yyyy') as adate,a.approx_time,a.unit,a.update_assign,
                 a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark        
@@ -263,12 +296,31 @@ if(!empty($pending)){
                }
             ?>             
                 <td><?php echo $difference ?></td>
-                    
+                <?php 
+                    $sql2="SELECT isdelay, istransfer,ticketid,
+                    CASE
+                        WHEN isdelay=1 THEN 'delayed'
+                        WHEN isdelay=0 THEN ''
+                        ELSE ''
+                    END AS isdelay,
+                    CASE
+                        WHEN istransfer=1 THEN 'transferred'
+                        WHEN istransfer=0 THEN ''
+                        ELSE ''
+                    END AS istrans
+                    FROM uwticket_head where ticketid= '".$row['tsr']."' ";
+                    $run2=sqlsrv_query($conn,$sql2);
+                    $row2=sqlsrv_fetch_array($run2,SQLSRV_FETCH_ASSOC)
+
+                ?>
+                 <td><?php echo $row2['istrans'] ?? ''?></td>
+                <td><?php echo $row2['isdelay'] ?? ''?></td>             
                 <?php
                 $sr++;
                     }
-                    ?>            
-                </tr>                   
+                    ?>         
+                   
+            </tr>                   
         </tbody>
     </table>
 </div>  

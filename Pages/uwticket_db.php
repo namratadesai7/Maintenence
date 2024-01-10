@@ -35,13 +35,17 @@ if(isset($_POST['save'])){
     $istransfer=0;
 
   }
-    $sql="INSERT INTO uwticket_head (ticketid,assignid,c_date,Status,resolved_time,unit,no_of_parts,remark,approx_cdate,createdBy,istransfer)
-    VALUES('$tid','$aid','$cdate','$cstatus','$resolved_time','$unit','$noparts','$rem','$approxdate','".$_SESSION['uname']."','$istransfer') ";
+  if($cstatus=='delay'){
+    $isdelay=1;
+
+  }else{
+    $isdelay=0;
+
+  }
+    $sql="INSERT INTO uwticket_head (ticketid,assignid,c_date,Status,resolved_time,unit,no_of_parts,remark,approx_cdate,createdBy,istransfer,isdelay)
+    VALUES('$tid','$aid','$cdate','$cstatus','$resolved_time','$unit','$noparts','$rem','$approxdate','".$_SESSION['uname']."','$istransfer','$isdelay') ";
    $run=sqlsrv_query($conn,$sql);
-  //  echo $sql;
-  //  echo $status;
-  
-  
+
   if($partschange=='yes'){
 
     foreach($name as $key => $value){
