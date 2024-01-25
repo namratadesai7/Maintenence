@@ -79,7 +79,6 @@ $sname=$_SESSION['sname'] ?? '';
             <div class="divCss">
                 <form action="cticket_db.php" method="post" autocomplete="off"  enctype="multipart/form-data">          
                     <div class="row px-2">
-                   
                         <label class="form-label col-lg-3 col-md-6" for="date">Date  
                             <input class="form-control" id="date" type="date" name="date" value="<?php echo $date ?>">              
                         </label>
@@ -137,46 +136,54 @@ $sname=$_SESSION['sname'] ?? '';
                             </div>
                        
                         </label>
-     
 
-                        <!-- <label class="form-label col-lg-3 col-md-6" for="img">Camera/Audio/Video                   
-                            <div class="tog">
-                            <input  class="form-control" type="file" accept="image/*" name="img" id="img" required>
-                            <input class="form-control" type="file" accept="audio/*"  name="audio" id="audio" >
-                            <input class="form-control" type="file" accept="video/*"  name="video" id="video"     >
-                            </div>
-                        </label> -->
-                
-                        <label class="form-label col-lg-3 col-md-6" for="remark">Remark                   
-                            <input class="form-control" id="remark" type="text" name="remark" value="">
+                        <label class="form-label col-lg-3 col-md-6" for="type">Type 
+                            <select  class="form-select" name="type" id="type">
+                                <option value=""></option>
+                                <option value="New">New</option>
+                                <option value="Repair">Repair</option>
+                            </select>                                                 
                         </label>
-                        </div> 
-                        <div class="row ps-2 mt-2">
-                        <label class="form-label col-lg-3 col-md-6" for="pstop">Production Stopped?
-                                <select class="form-select" name="pstop" id="pstop">
+                        
+                    </div> 
+                    <div class="row ps-2 mt-2">        
+                            <label class="form-label col-lg-3 col-md-6" for="room">Room 
+                                <select  class="form-select" name="room" id="room">
                                     <option value=""></option>
-                                    <option value="yes">Yes</option>
-                                    <option value="no">No</option>
-                                </select>
-                        </label>   
+                                    <option value="tool">Tool Room</option>
+                                    <option value="maintenance">Maintenance room</option>
+                                </select>                  
+                            </label>                  
+                            
+                            <label class="form-label col-lg-3 col-md-6" for="remark">Remark                   
+                                <input class="form-control" id="remark" type="text" name="remark" value="">
+                            </label>
+
+                            <label class="form-label col-lg-3 col-md-6" for="pstop">Production Stopped?
+                                    <select class="form-select" name="pstop" id="pstop">
+                                        <option value=""></option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                            </label>   
                    
-                        <label  class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
-                            <br>
-                            <input class="form-check-input" type="radio" name="priority" value="low" id="flexRadioDefault1">
-                            <label class="form-check-label" for="flexRadioDefault1">
-                                Low
+                            <label  class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
+                                <br>
+                                <input class="form-check-input" type="radio" name="priority" value="low" id="flexRadioDefault1">
+                                <label class="form-check-label" for="flexRadioDefault1">
+                                    Low
+                                </label>
+                                                
+                                <input class="form-check-input" type="radio" name="priority" value="medium" id="flexRadioDefault2" checked>
+                                <label class="form-check-label" for="flexRadioDefault2">
+                                    Medium
+                                </label>
+                                                
+                                <input class="form-check-input" type="radio" name="priority" value="high" id="flexRadioDefault3" >
+                                <label class="form-check-label" for="flexRadioDefault3">
+                                    High
+                                </label>                    
                             </label>
-                                            
-                            <input class="form-check-input" type="radio" name="priority" value="medium" id="flexRadioDefault2" checked>
-                            <label class="form-check-label" for="flexRadioDefault2">
-                                Medium
-                            </label>
-                                            
-                            <input class="form-check-input" type="radio" name="priority" value="high" id="flexRadioDefault3" >
-                            <label class="form-check-label" for="flexRadioDefault3">
-                                High
-                            </label>                    
-                        </label>
                         
                         <div class="col"></div>
                         <div class="col-auto mt-2">
@@ -196,7 +203,15 @@ $sname=$_SESSION['sname'] ?? '';
 		$(".user").select2();
 	});
 
-
+    $(document).on('change','#type',function(){
+        var type=$(this).val();
+        if(type=='New'){
+            $('#room').val("tool");
+        }else{
+            $('#room').val("maintenance");
+        }
+        
+    })
    
             // Get the select element and input element
           

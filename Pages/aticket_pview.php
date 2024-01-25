@@ -2,23 +2,14 @@
 include('../includes/dbcon.php');
 session_start();
 
-// $condition='';
-// if( $_SESSION['urights']!="admin"){
+$teamlead=$_SESSION['isteamlead'];
+$condition='';
+if($teamlead=='tool'){
+    $condition.=" and t.room='tool' "  ;
 
-//     $condition.="    ";
-// }
-
-// $sql="	WITH abc AS (
-
-//     SELECT COUNT(*) AS cnt, ticket_id
-//     FROM assign
-//     GROUP BY ticket_id
-//     HAVING COUNT(*) % 2 = 0
-//     )
-// SELECT a.istransfer,u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,u.ticketid,a.assign_to,format(a.assign_date,'dd-MM-yyyy') as adate,a.approx_time,a.unit,a.istransfer,t.priority,
-// a.update_assign,a.srno as asr FROM assign a full outer join ticket t on a.ticket_id =t.srno
-// full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0 and (u.Status <>'closed' or u.Status is null) and assign_to is not null AND a.istransfer=0  
-// and ticket_id  in(select ticket_id from abc) or ticketid is null and a.istransfer is not  null".$condition;
+}else if($teamlead=='maint'){
+    $condition.=" and t.room='maintenance'";
+}
 
 
 $sql="	WITH pqr as(SELECT COUNT(*) AS cnt, ticketid
@@ -32,10 +23,10 @@ $sql="	WITH pqr as(SELECT COUNT(*) AS cnt, ticketid
         AND SUM(CASE WHEN status = 'transfer' THEN 1 ELSE 0 END) > 0 
 
 )
-SELECT a.istransfer,u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,u.ticketid,a.assign_to,format(a.assign_date,'dd-MM-yyyy') as adate,a.approx_time,a.unit,a.istransfer,t.priority,
+SELECT a.istransfer,u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,t.room,u.ticketid,a.assign_to,format(a.assign_date,'dd-MM-yyyy') as adate,a.approx_time,a.unit,a.istransfer,t.priority,
 a.update_assign,a.srno as asr FROM assign a full outer join ticket t on a.ticket_id =t.srno
 full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and	ticket_id not in( select ticketid from pqr) and ticket_id  in(select ticketid from transfer)
-and a.istransfer<>1 and a.istransfer is not null   or ticketid is null and assign_to is not null";
+and a.istransfer<>1 and a.istransfer is not null   or ticketid is null and assign_to is not null".$condition;
 $run = sqlsrv_query($conn, $sql);
 
 ?>
@@ -54,6 +45,7 @@ $run = sqlsrv_query($conn, $sql);
                     <th>Department</th>
                     <th>Plant</th>
                     <th>Issue</th>
+                    <th>Type</th>
                     <th>Remark</th>
                     <th>Assign<br>To</th>
                     <th>Assign<br>Date</th>
@@ -146,6 +138,7 @@ $run = sqlsrv_query($conn, $sql);
                             <td><?php echo $row['department']?></td>
                             <td><?php echo $row['plant']?></td>
                             <td><?php echo $row['issue']?></td>
+                            <td><?php echo $row['room']=='maintenance' ? 'main' : $row['room'] ?></td>
                             <td><?php echo $row['remark']?></td>
                             <td><?php echo $row['assign_to'] ?? '' ?></td>
                             <td><?php echo $row['adate'] ?? '' ?></td>
@@ -164,7 +157,7 @@ $run = sqlsrv_query($conn, $sql);
         <script>
            // datatable to table
     $(document).ready(function() {
-        $('#assignTable').DataTable({
+        var dataTable=$('#assignTable').DataTable({
             "processing": true,
             "lengthMenu": [10, 25, 50, 75, 100],
             "responsive": {
@@ -182,12 +175,30 @@ $run = sqlsrv_query($conn, $sql);
 		 		'pageLength','copy', 'excel',
                 {
                     text:'ViewAll', className:'viewall',
+                    // action:function(){
+                    //     $('#spinLoader').html('<span class="spinner-border spinner-border-lg mx-2"></span><p>Loading..</p>');
+                    //     $('#putTable').css({"opacity":"0.5"});
+
+                    //     $.ajax({
+                    //         url:'aticket_view.php',
+                    //         type:'post',
+                    //         data:{ },
+                    //         success:function(data){
+                    //             $('#putTable').html(data);
+                    //             $('#spinLoader').html('');
+                    //             $('#putTable').css({"opacity":"1"});
+                    //         }
+                    //     });
+                    // }
+                },
+                {
+                    text:'Pending', className:'pending',
                     action:function(){
                         $('#spinLoader').html('<span class="spinner-border spinner-border-lg mx-2"></span><p>Loading..</p>');
                         $('#putTable').css({"opacity":"0.5"});
 
                         $.ajax({
-                            url:'aticket_view.php',
+                            url:'aticket_pview.php',
                             type:'post',
                             data:{ },
                             success:function(data){
@@ -199,27 +210,57 @@ $run = sqlsrv_query($conn, $sql);
                     }
                 },
                 {
-                    text:'Pending', className:'pending',
+                    text:'Back', className:'back',
                     action:function(){
-                        $('#spinLoader').html('<span class="spinner-border spinner-border-lg mx-2"></span><p>Loading..</p>');
-                        $('#putTable').css({"opacity":"0.5"});
-
-                        $.ajax({
-                            url:'aticket_view.php',
-                            type:'post',
-                            data:{ },
-                            success:function(data){
-                                $('#putTable').html(data);
-                                $('#spinLoader').html('');
-                                $('#putTable').css({"opacity":"1"});
-                            }
-                        });
+                       window.location.reload();
                     }
-                },
+
+                }
         	],
             language: {
                 searchPlaceholder: "Search..."
             }
         });
+        $('.viewall').on('click', function() {
+         
+         isServerSide = true; // Switch to server-side processing
+         dataTable.destroy(); // Destroy the current DataTable instance
+         dataTable = $('#assignTable').DataTable({
+             "processing": true,
+             "serverSide": isServerSide,
+             "ajax": {
+                 "url": "aticket_view.php",
+                 "type": "POST",
+                 "data": function(d) {
+                     d.start = d.start || 0;
+                     d.length = d.length || 10;
+                     // d.draw = d.draw || 1;
+                 }
+             },
+             "lengthMenu": [10, 25, 50, 75, 100],
+             "responsive": {
+                 "details": true
+             },
+             "columnDefs": [{
+                 "className": "dt-center",
+                 "targets": "_all"
+             }],
+             "scrollX": true,
+             dom: 'Bfrtip',
+             ordering: true,
+             buttons: [
+                 'pageLength', 'copy', 'excel',
+                    {
+                        text:'Back', className:'back',
+                        action:function(){
+                            window.location.reload();
+                        }
+                    }
+             ],
+             language: {
+                 searchPlaceholder: "Search..."
+             }
+         });
+     });
     });
         </script>

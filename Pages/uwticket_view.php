@@ -1,17 +1,32 @@
 <?php  
 include('../includes/dbcon.php');
 session_start();
+$page = $_POST['start'] / $_POST['length'] + 1; // Adjust as needed
+$length = $_POST['length'];
+
+// Calculate OFFSET based on the current page and length
+$offset = ($page - 1) * $length;
 
 $condition='';
 if( $_SESSION['urights']!="admin"){
-    $sql="SELECT u.Status,a.istransfer,a.srno,t.srno as tsr,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
+    $sql="SELECT u.Status,a.istransfer as a,a.srno,t.srno as tsr,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.image,t.audio,t.video,t.remark as remarkc,a.ticket_id,a.assign_to,
         a.assign_date,a.approx_time,a.unit,a.update_assign,
         a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark,u.ticketid,u.Status
 
         FROM assign a full outer join ticket t on a.ticket_id=t.srno
         full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and assign_to is not null
         and a.assign_to='".$_SESSION['sname']."' and (u.istransfer='0' or u.istransfer is null) and (CONCAT(t.srno,'/',u.createdAt) in 
-     (select CONCAT(ticketid,'/',max(createdAt)) from uwticket_head group by ticketid) OR u.createdAt is NULL)";
+        (select CONCAT(ticketid,'/',max(createdAt)) from uwticket_head group by ticketid) OR u.createdAt is NULL)
+        ORDER BY 
+        t.srno
+        OFFSET ".$offset." ROWS
+        FETCH NEXT  ".$length."  ROWS ONLY
+         
+     ";
+     $sqlCount="SELECT count(*) as total FROM assign a full outer join ticket t on a.ticket_id=t.srno
+     full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and assign_to is not null
+     and a.assign_to='".$_SESSION['sname']."' and (u.istransfer='0' or u.istransfer is null) and (CONCAT(t.srno,'/',u.createdAt) in 
+    (select CONCAT(ticketid,'/',max(createdAt)) from uwticket_head group by ticketid) OR u.createdAt is NULL)";
 
     // $condition.=" and a.assign_to='".$_SESSION['sname']."' and (u.istransfer='0' or u.istransfer is null) and (CONCAT(t.srno,'/',u.createdAt) in 
     // (select CONCAT(ticketid,'/',max(createdAt)) from uwticket_head group by ticketid) OR u.createdAt is NULL) ";
@@ -22,251 +37,114 @@ if( $_SESSION['urights']!="admin"){
             AND SUM(CASE WHEN status = 'transfer' THEN 1 ELSE 0 END) > 0
             )
           
-            SELECT u.Status,a.istransfer,u.istransfer,a.srno,t.srno as tsr,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.remark as remarkc,a.ticket_id,a.assign_to,
+            SELECT u.Status,a.istransfer as a,u.istransfer,a.srno,t.srno as tsr,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.image,t.audio,t.video,t.remark as remarkc,a.ticket_id,a.assign_to,
             a.assign_date,a.approx_time,a.unit,a.update_assign,
             a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark,u.ticketid,u.Status
 
             FROM assign a full outer join ticket t on a.ticket_id=t.srno
             full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and a.istransfer=1 and u.istransfer=1 or ( u.Status='closed' and a.istransfer=0) or ( u.Status='delay' and a.istransfer=0) 
-            or ticketid in(select ticketid from xyz)  OR u.createdAt is NULL and assign_to is not null ";
+            or ticketid in(select ticketid from xyz)  OR u.createdAt is NULL and assign_to is not null
+            ORDER BY 
+            t.srno
+            OFFSET ".$offset." ROWS
+            FETCH NEXT  ".$length."  ROWS ONLY
+             ";
+    $sqlCount="WITH XYZ as(SELECT COUNT(*) AS cnt, ticketid
+                FROM uwticket_head 
+                GROUP BY ticketid HAVING  COUNT(*) % 2 = 1 
+                AND SUM(CASE WHEN status = 'transfer' THEN 1 ELSE 0 END) > 0
+                )
+            
+                SELECT count(*) as total 
+                FROM assign a full outer join ticket t on a.ticket_id=t.srno
+                full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and a.istransfer=1 and u.istransfer=1 or ( u.Status='closed' and a.istransfer=0) or ( u.Status='delay' and a.istransfer=0) 
+                or ticketid in(select ticketid from xyz)  OR u.createdAt is NULL and assign_to is not null";         
 
 }
 
-$run=sqlsrv_query($conn,$sql);
+$stmtCount = sqlsrv_query($conn, $sqlCount);
+$totalRecords = sqlsrv_fetch_array($stmtCount, SQLSRV_FETCH_ASSOC)['total'];
+$stmt = sqlsrv_query($conn,$sql);
+$records = array();
+$sr=1;
+while ($row = sqlsrv_fetch_array($stmt,SQLSRV_FETCH_ASSOC)) {
+    $row['abc']=$row['abc']?? '' ;
+    $userDate = new DateTime($row['cdate']);
+    $endDate = new DateTime($row['abc']);
 
+    if($row['abc'] == '' || $row['cdate']=='' || $row['c_date']->format('Y')=='1900') {
+        $difference = ''; // Set delay days to blank
+     } else {
+        $difference = $endDate->diff($userDate)->format("%a") ;
+     }
+    $row['c_date']=$row['c_date']?? '' ;
+
+    $sql1=" SELECT COUNT(*) AS cnt, ticketid
+            FROM uwticket_head 
+            GROUP BY ticketid HAVING  COUNT(*) > 1 
+            AND SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) > 0 and ticketid='".$row['tsr']."'";
+            $run1=sqlsrv_query($conn,$sql1);
+            $row1=sqlsrv_fetch_array($run1,SQLSRV_FETCH_ASSOC);
+            $ticket=$row1['ticketid'] ?? '';
+            $rt=$row['resolved_time'] ?? '' ;
+            $ct=$row['approx_cdate'] ?? '';
+
+    $sql2="SELECT COUNT(*) AS cnt, ticket_id
+    FROM assign where ticket_id='".$row['tsr']."'
+    GROUP BY ticket_id ";        
+    $run2=sqlsrv_query($conn,$sql2);
+    $row2=sqlsrv_fetch_array($run2,SQLSRV_FETCH_ASSOC);
+
+     $records[]=array(
+        $sr,       
+        (($row['Status'] == 'transfer' && $row['a']==0 && $row2['cnt']==1) || ($row['Status'] == 'transfer' && $row['a']==1 && $row['istransfer']==1)|| $row['Status'] == 'closed' || $row['tsr']== $ticket  ) ?'<button type="button" class="btn btn-sm rounded-pill btn-primary recordexist" >Action</button>' :'<button type="button" class="btn btn-sm rounded-pill btn-primary close" 
+            id="'. $row['ticket_id'].'" data-name="'.$row['srno'].'">Action</button>',
+        $row['tsr'],
+        $row['priority'],
+        $row['pstop'],
+        ($ct=='')? 'Assigned'   : ( ($rt!='')? 'Closed' : (($ct->format('Y')=='1900' && $row['a']==1)?'Transferred' : (($ct->format('Y')=='1900' && $row['a']==0)?(($row2['cnt']%2==0)?'Assigned' :'Transfer') : 'Delayed'))  ),
+        $row['cdate'],
+        $row['username'],
+        $row['mcno'],
+        $row['department'],
+        $row['plant'],
+        $row['issue'],
+        ($row['image']!='')? ($row['image'] != '') ? '<img src="../file/image-upload/' . $row['image'] . '" width="80" height="60">' : ''
+        :(($row['audio']!='') ?  '<audio id="aud"   controls><source src="../file/audio-upload/'. $row['audio'].'" type="audio/mp3" > Your browser does not support the audio element.
+        </audio>' : ( ($row['video']!='')?   '<video id="vid" width="80" height="60" controls>
+        <source src="../file/video-upload/'. $row['video'].'" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>': '' )),
+        $row['remarkc'],
+        $row['assign_to'],         
+        $row['assign_date']->format('d-m-Y'),
+        $row['approx_time'],       
+        $row['unit'],              
+        $row['update_assign'],     
+        $row['subcat'],                      
+        $row['role'],                
+        $row['resolved_time'] ?? '',
+        $row['no_of_parts'] ?? '',          
+        $row['remark']?? '',
+        ($row['c_date']!='')? ( ($row['c_date']->format('Y')=='1900') ? '' : $row['c_date']->format('d-m-Y') ): '',
+        $difference,
+     );
+     $sr=$sr+1;
+
+}
+
+
+// Example response structure:
+$response = array(
+    "draw" => intval($_POST['draw']),
+    "recordsTotal" => $totalRecords,
+    "recordsFiltered" => $totalRecords,
+    "data" => $records
+);
+
+echo json_encode($response);
 ?>
-  <table class="table  table-bordered text-center table-striped table-hover mb-0" id="uwtickettable">
-            <thead>
-                <tr class="bg-secondary text-light">
-                    <th>Sr</th>
-                    <th>Action</th>
-                    <th>Ticket<br>ID</th>
-                    <th>Priority</th>
-                    <th>Prod Stop</th>
-                    <th>Status Team </th>
-                    <th>Create Date </th>
-                    <th>User</th>
-                    <th>M/C No.</th>
-                    <th>Department </th>
-                    <th>Plant</th>
-                    <th>Issue</th>
-                    <th>Remark C</th> 
-                    <!-- From assign -->
-                    <th>Assign to </th>
-                    <th>Assign Date </th>
-                    <th>Approx time</th>
-                    <th>Unit</th>
-                    <th>Update </th>
-                    <th>Sub Cat</th>
-                    <th>Role</th>
-                    <!-- <th>Close Status</th> -->
-                    <th>Resolved Time</th>
-                    <th>Parts Change</th>
-                    <th>Remarks Team</th>
-                    <th>CloseDate</th>
-                    <th>Days</th>                                  
-                </tr>
-            </thead>
-            <tbody> 
-                <?php
-                    $sr=1;
-                  
-                    while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
-                        // $sql2="SELECT c_date,format(c_date,'dd-MM-yyyy') as abc,resolved_time,approx_cdate,no_of_parts,remark  FROM uwticket_head where ticketid='".$row['ticket_id']."' and istransfer=0";
-                        // $run2=sqlsrv_query($conn,$sql2);
-                        // $row2=sqlsrv_fetch_array($run2,SQLSRV_FETCH_ASSOC);
-                        $row['abc']=$row['abc']?? '' ;
-                        $userDate = new DateTime($row['cdate']);
-                        $endDate = new DateTime($row['abc']);
 
-                        if($row['abc'] == '' || $row['cdate']=='' || $row['c_date']->format('Y')=='1900') {
-                            $difference = ''; // Set delay days to blank
-                         } else {
-                        $difference = $endDate->diff($userDate)->format("%a") ;
-                         }
-                         $row['c_date']=$row['c_date']?? '' ;
-                ?>
-                <tr>
-                    <td><?php echo $sr;   ?></td>
-                    <!-- <td style="padding: 3px 6px !important;">
-                        <button type="button" class="btn btn-sm rounded-pill btn-primary close" 
-                        <?php if($row['Status']=="closed") {?> disabled <?php
-                        } ?>
-                        id="<?php echo $row['ticket_id'] ?>" 
-                        data-name="<?php echo $row['srno'] ?>">Action</button>
-                    </td> -->
-                    <td style="padding: 3px 6px !important;">
-                    <?php
-                        $sql1=" SELECT COUNT(*) AS cnt, ticketid
-                        FROM uwticket_head 
-                        GROUP BY ticketid HAVING  COUNT(*) > 1 
-                        AND SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) > 0 and ticketid='".$row['tsr']."'";
-                        $run1=sqlsrv_query($conn,$sql1);
-                        $row1=sqlsrv_fetch_array($run1,SQLSRV_FETCH_ASSOC);
-                        $ticket=$row1['ticketid'] ?? '';
-                        ?>
-                    <?php
-                   
-                        if($row['Status'] == 'transfer' || $row['Status'] == 'closed' || $row['tsr']== $ticket){ ?>
-                            <button type="button" class="btn btn-sm rounded-pill btn-primary recordexist" 
-                               >Action</button>                      
-                            <?php } else{
-                                ?>
-                             <button type="button" class="btn btn-sm rounded-pill btn-primary close" 
-                            id="<?php echo $row['ticket_id'] ?>" 
-                            data-name="<?php echo $row['srno'] ?>">Action</button>
 
-<?php
 
-                    } 
-                
-                    ?>
-                    </td>
-                    <td><?php echo $row['tsr'] ?></td>
-                    <td><?php echo $row['priority'] ?></td>
-                    <td><?php echo $row['pstop'] ?></td>
-                    <!-- from team -->
-                    <?php
-                    $rt=$row['resolved_time'] ?? '' ;
-                    $ct=$row['approx_cdate'] ?? '';
-                    if($ct==''){
-                        ?>
-                        <td>Assigned</td>
-                        <?php
-                    }else{
-
-                        if($rt!=''){
-                            ?>
-                            <td>Closed</td>
-                            <?php
-                        }else{
-                            if($ct->format('Y')=='1900'){
-                            ?>
-                            <td>Transferred</td>
-                            <?php
-                            }else{
-                            ?>
-                            <td>Delayed</td>
-                            <?php
-                            }  
-                        }
-                    }              
-                    ?>   
-                    <!-- from create ticket -->
-                    <td><?php echo $row['cdate'] ?></td>
-                    <td><?php echo $row['username'] ?></td>
-                    <td><?php echo $row['mcno'] ?></td>
-                    <td><?php echo $row['department'] ?></td>
-                    <td><?php echo $row['plant'] ?></td>
-                    <td><?php echo $row['issue'] ?></td>
-                    <td><?php echo $row['remarkc'] ?></td>
-                    <!-- from assign -->
-                    <td><?php echo $row['assign_to'] ?></td>
-                    <td><?php echo $row['assign_date']->format('d-m-Y') ?></td>
-                    <td><?php echo $row['approx_time'] ?></td>
-                    <td><?php echo $row['unit'] ?></td>
-                    <td><?php echo $row['update_assign'] ?></td>
-                    <td><?php echo $row['subcat'] ?></td>
-                    <td><?php echo $row['role'] ?></td>                      
-                    <td><?php echo $row['resolved_time'] ?? '' ?></td>
-                    <td><?php echo $row['no_of_parts'] ?? '' ?></td>
-                    <td><?php echo $row['remark']?? '' ?></td>
-                   <?php
-                   if($row['c_date']!=''){
-                    if($row['c_date']->format('Y')=='1900'){
-                        ?>
-                        <td></td>
-                        <?php
-                        }else{
-                        ?>
-                        <td> <?php echo $row['c_date']->format('d-m-Y') ?></td>
-                        <?php
-                        }
-                   }            
-               else{
-                ?>
-                <td></td>
-            <?php
-               }
-            ?>             
-                <td><?php echo $difference ?></td>         
-                <?php
-                $sr++;
-                    }
-                    ?>            
-                </tr>
-            </tbody>
-           </table>
-           <script>
-              function Searchname(txtBoxRef) {
-      
-      var f = true; //check if enter is detected
-        $(txtBoxRef).keypress(function (e) {
-            if (e.keyCode == '13' || e.which == '13'){
-                f = false;
-            }
-        });
-        $(txtBoxRef).autocomplete({      
-            source: function( request, response ){
-                $.ajax({
-                    url: "cticketget_data.php",
-                    type: 'post',
-                    dataType: "json",
-                    data: {aname: request.term },
-                    success: function( data ) {
-                        response( data );
-                    },
-                    error:function(data){
-                        console.log(data);
-                    }
-                });
-            },
-            select: function (event, ui) {
-                $('#assign_to').val(ui.item.label);
-                return false;
-            },
-            change: function (event, ui) {
-                if(f){
-                    if (ui.item == null){
-                        $(this).val('');
-                        $(this).focus();
-                    }
-                }
-            },
-            open: function () {
-            // Set a higher z-index for the Autocomplete dropdown
-            $('.ui-autocomplete').css('z-index',1500);
-           }
-          });
-        } 
-  
-     
-    // datatable to table
-    $(document).ready(function() {
-        $('#uwtickettable').DataTable({
-            "processing": true,
-            "lengthMenu": [10, 25, 50, 75, 100],
-            "responsive": {
-                "details": true
-            },
-            "columnDefs": [{
-                "className": "dt-center",
-                "targets": "_all"
-            }],
-            dom: 'Bfrtip',
-            ordering: true,
-            destroy: true,
-          
-            buttons: [
-		 		'pageLength','copy', 'excel',
-                {
-                    text:'ViewAll', className:'viewall',
-                  
-                },
-        	],
-            language: {
-                searchPlaceholder: "Search..."
-            }
-        });
-    });
-           </script>
+ 

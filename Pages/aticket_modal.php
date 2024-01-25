@@ -27,14 +27,14 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
 
         <label class="form-label col-lg-3 col-md-6" for="user">Created By                   
             <!-- <input class="form-control" id="user" type="text" name="user" value="<?php echo $sname ?>" onFocus="Searchname(this)" > -->
-            <select name="user" id="user" class="form-control user">
+            <select name="user" id="user" class="form-control user" >
                 <option></option>
                 <?php 
                     $query = "SELECT sortname1  FROM [Workbook].[dbo].[user] where sortname1 is not NULL";
                     $run1 = sqlsrv_query($conn,$query);
                     while($row1=sqlsrv_fetch_array($run1,SQLSRV_FETCH_ASSOC)){
                 ?>
-                <option <?php if($row['username']==$row1['sortname1']){ ?> selected <?php  } ?>><?php echo $row1['sortname1'] ?></option>
+                <option <?php if($row['username']==$row1['sortname1']){ ?> selected <?php  } ?> ><?php echo $row1['sortname1'] ?></option>
                 <?php } ?>
             </select>
         </label>
@@ -130,7 +130,7 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
         </div>
         <div class="col-md-3">
             <label for="assign_to">Assigned To</label>
-            <input type="text" name="assign_to" id="assign_to" class="form-control mt-1" onFocus="Searchname(this)">
+            <input type="text" name="assign_to" id="assign_to" class="form-control mt-1" onFocus="Searchassignname(this)">
         </div>
         <div class="col-md-3">
             <label for="">Approx. Time</label>
@@ -147,7 +147,6 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
         <div class="col-md-3">
             <label for="">Category</label>
             <select name="cat" id="cat" class="form-control mt-1">
-
                 <option value="mechanical">Mechanical</option>
                 <option value="electrical">Electrical</option>
             </select>

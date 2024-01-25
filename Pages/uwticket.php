@@ -12,12 +12,12 @@ if( $_SESSION['urights']!="admin"){
     $condition.=" and a.assign_to='".$_SESSION['sname']."' and (u.istransfer='0' or u.istransfer is null) ";
 }
 
-$sql="SELECT u.Status,a.istransfer,a.srno,t.srno as tsr,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.image,t.audio,t.video,t.remark as remarkc,a.ticket_id,a.assign_to,
+$sql="SELECT top 200  u.Status,a.istransfer,a.srno,t.srno as tsr,a.priority,t.pstop,format(t.date,'dd-MM-yyyy') as cdate,t.username,t.mcno,t.department,t.plant,t.issue,t.image,t.audio,t.video,t.remark as remarkc,a.ticket_id,a.assign_to,
 a.assign_date,a.approx_time,a.unit,a.update_assign,
 a.subcat, a.role ,u.c_date,format(u.c_date,'dd-MM-yyyy') as abc,u.resolved_time,u.approx_cdate,u.no_of_parts,u.remark,u.ticketid
 
-FROM assign a full outer join ticket t on a.ticket_id=t.srno
-full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and assign_to is not null and (u.Status <> 'closed' or u.Status is null)   and (CONCAT(t.srno,'/',u.createdAt) in 
+FROM assign a right join ticket t on a.ticket_id=t.srno
+left join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  and assign_to is not null and (u.Status <> 'closed' or u.Status is null)   and (CONCAT(t.srno,'/',u.createdAt) in 
     (select CONCAT(ticketid,'/',max(createdAt)) from uwticket_head group by ticketid) OR u.createdAt is NULL)  ".$condition;
 $run=sqlsrv_query($conn,$sql);
 
@@ -111,9 +111,80 @@ $run=sqlsrv_query($conn,$sql);
             padding-top: 10px;
         }
     }
+    
 </style>
 <title>User Work Ticket</title>
     <div class="container-fluid fl ">
+    <form id="report">
+        <div class="divCss ">           
+            <div class="row px-2">
+                
+                <!-- <label class="form-label col-lg-3 col-md-6" for="user">Created By     
+                    <input type="text" class="form-control searchInput user" name="user" id="user" onFocus="Searchname(this)" placeholder="User Name"></input>
+                </label>
+
+                <label class="form-label col-lg-3 col-md-6" for="assignto">Assign to     
+                    <input type="text" class="form-control searchInput assignto" name="assignto" id="assignto" onFocus="Searchassignname(this)" placeholder="Assign to"></input>
+                </label> -->
+
+                <label class="form-label col-lg-3 col-md-6" for="pending">Pending     
+                    <!-- <input type="text" class="form-control searchInput pending" name="pending" id="pending"  placeholder="User Name"></input> -->
+                    <select class="form-select searchInput pending" name="pending" id="pending">
+                        <option  selected default value=""></option>
+                        <option value="assigned">Assigned</option>
+                        <!-- <option value="unassigned">Unassigned</option> -->
+                        <option value="closed">Closed</option>
+                        <option value="delayed">Delayed</option>
+                        <option value="transferred">Transferred</option>
+                    </select>
+                </label>
+                <label class="form-label col-lg-3 col-md-6" for="ticketno">Ticket No.     
+                    <input type="text" class="form-control searchInput ticketno" name="ticketno" id="ticketno"  onFocus="Searchtid(this)"  placeholder="Ticket No.">
+                  
+                </label>
+                
+               
+                <label class="form-label col-lg-3 col-md-6" for="cfrom">Created From
+                    <input type="date" class="form-control searchInput cfrom" name="cfrom" id="cfrom" ></input>
+                </label>    
+
+                <label class="form-label col-lg-3 col-md-6" for="cto">Created To
+                    <input type="date" class="form-control searchInput cto" name="cto" id="cto" ></input>
+                </label>
+            </div>
+            <div class="row px-2">
+                <!-- <label class="form-label col-lg-2 col-md-6" for="cfrom">Created From
+                    <input type="date" class="form-control searchInput cfrom" name="cfrom" id="cfrom" ></input>
+                </label>    
+
+                <label class="form-label col-lg-2 col-md-6" for="cto">Created To
+                    <input type="date" class="form-control searchInput cto" name="cto" id="cto" ></input>
+                </label>  -->
+
+                 <label class="form-label col-lg-3 col-md-6" for="afrom">Assigned From
+                    <input type="date" class="form-control searchInput afrom" name="afrom" id="afrom" ></input>
+                </label>    
+
+                <label class="form-label col-lg-3 col-md-6" for="ato">Assigned To
+                    <input type="date" class="form-control searchInput ato" name="ato" id="ato" ></input>
+                </label> 
+
+                <label class="form-label col-lg-3 col-md-6" for="clfrom">Closed From
+                    <input type="date" class="form-control searchInput clfrom" name="clfrom" id="clfrom" ></input>
+                </label>    
+
+                <label class="form-label col-lg-3 col-md-6" for="clto">Closed To
+                    <input type="date" class="form-control searchInput clto" name="clto" id="clto" ></input>
+                </label>               
+            </div>
+            <div class="row">
+                <div class="col"></div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-rounded rounded-pill btn-danger search" id="search">Search</button>                         
+                </div>
+            </div>
+        </div><br>
+        </form>    
         <div class="row mb-3">
             <div class="col">
                 <h4 class="pt-2 mb-0">User work Ticket</h4>
@@ -157,9 +228,7 @@ $run=sqlsrv_query($conn,$sql);
                 <?php
                     $sr=1;
                     while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
-                        // $sql2="SELECT c_date,format(c_date,'dd-MM-yyyy') as abc,resolved_time,approx_cdate,no_of_parts,remark  FROM uwticket_head where ticketid='".$row['ticket_id']."' and istransfer=0";
-                        // $run2=sqlsrv_query($conn,$sql2);
-                        // $row2=sqlsrv_fetch_array($run2,SQLSRV_FETCH_ASSOC);
+                
                         $row['abc']=$row['abc']?? '' ;
                         $userDate = new DateTime($row['cdate']);
                         $endDate = new DateTime($row['abc']);
@@ -260,7 +329,7 @@ $run=sqlsrv_query($conn,$sql);
                    if($row['c_date']!=''){
                     if($row['c_date']->format('Y')=='1900'){
                         ?>
-                        <td></td>
+                        <td> </td>
                         <?php
                         }else{
                         ?>
@@ -270,7 +339,7 @@ $run=sqlsrv_query($conn,$sql);
                    }            
                else{
                 ?>
-                <td></td>
+                <td> </td>
             <?php
                }
             ?>             
@@ -329,12 +398,14 @@ $run=sqlsrv_query($conn,$sql);
         </div>
     </div>
 </div>  
+
 <script>
   $('#uwticket').addClass('active');
 
+
   $(document).on('click', '#img', function() {
     var id=$(this).data('name');
-    console.log(id);
+   
         
     $.ajax({
                 url: 'cticket_img.php',
@@ -430,54 +501,56 @@ $run=sqlsrv_query($conn,$sql);
         });
     });
 
-    function Searchname(txtBoxRef) {
+    // function Searchname(txtBoxRef) {
       
-      var f = true; //check if enter is detected
-        $(txtBoxRef).keypress(function (e) {
-            if (e.keyCode == '13' || e.which == '13'){
-                f = false;
-            }
-        });
-        $(txtBoxRef).autocomplete({      
-            source: function( request, response ){
-                $.ajax({
-                    url: "cticketget_data.php",
-                    type: 'post',
-                    dataType: "json",
-                    data: {iname: request.term },
-                    success: function( data ) {
-                        response( data );
-                    },
-                    error:function(data){
-                        console.log(data);
-                    }
-                });
-            },
-            select: function (event, ui) {
-                $(this).val(ui.item.label);
-                return false;
-            },
-            change: function (event, ui) {
-                if(f){
-                    if (ui.item == null){
-                        $(this).val('');
-                        $(this).focus();
-                    }
-                }
-            },
-            open: function () {
-            // Set a higher z-index for the Autocomplete dropdown
-            $('.ui-autocomplete').css('z-index',1500);
-            $('.ui-autocomplete').css('width', '300px'); 
-           }
-        });
-    } 
+    //   var f = true; //check if enter is detected
+    //     $(txtBoxRef).keypress(function (e) {
+    //         if (e.keyCode == '13' || e.which == '13'){
+    //             f = false;
+    //         }
+    //     });
+    //     $(txtBoxRef).autocomplete({      
+    //         source: function( request, response ){
+    //             $.ajax({
+    //                 url: "cticketget_data.php",
+    //                 type: 'post',
+    //                 dataType: "json",
+    //                 data: {iname: request.term },
+    //                 success: function( data ) {
+    //                     response( data );
+    //                 },
+    //                 error:function(data){
+    //                     console.log(data);
+    //                 }
+    //             });
+    //         },
+    //         select: function (event, ui) {
+    //             $(this).val(ui.item.label);
+    //             return false;
+    //         },
+    //         change: function (event, ui) {
+    //             if(f){
+    //                 if (ui.item == null){
+    //                     $(this).val('');
+    //                     $(this).focus();
+    //                 }
+    //             }
+    //         },
+    //         open: function () {
+    //         // Set a higher z-index for the Autocomplete dropdown
+    //         $('.ui-autocomplete').css('z-index',1500);
+    //         $('.ui-autocomplete').css('width', '300px'); 
+    //        }
+    //     });
+    // } 
    
   
 
     $(document).ready(function () {
-        $('#uwtickettable').DataTable({
+        var isServerSide = false;
+        var dataTable=$('#uwtickettable').DataTable({
         "processing": true,
+        "serverSide": isServerSide,
         "lengthMenu": [10, 25, 50, 75, 100],
         "responsive": {
             "details": true
@@ -493,28 +566,227 @@ $run=sqlsrv_query($conn,$sql);
 		 		'pageLength','copy', 'excel',
                  {
                     text:'ViewAll', className:'viewall',
-                    action:function(){
-                        $('#spinLoader').html('<span class="spinner-border spinner-border-lg mx-2"></span><p>Loading..</p>');
-                        $('#putTable').css({"opacity":"0.5"});
+                    // action:function(){
+                    //     $('#spinLoader').html('<span class="spinner-border spinner-border-lg mx-2"></span><p>Loading..</p>');
+                    //     $('#putTable').css({"opacity":"0.5"});
 
-                        $.ajax({
-                            url:'uwticket_view.php',
-                            type:'post',
-                            data:{ },
-                            success:function(data){
-                                $('#putTable').html(data);
-                                $('#spinLoader').html('');
-                                $('#putTable').css({"opacity":"1"});
-                            }
-                        });
-                    }
+                    //     $.ajax({
+                    //         url:'uwticket_view.php',
+                    //         type:'post',
+                    //         data:{ },
+                    //         success:function(data){
+                    //             $('#putTable').html(data);
+                    //             $('#spinLoader').html('');
+                    //             $('#putTable').css({"opacity":"1"});
+                    //         }
+                    //     });
+                    // }
                 },
         	],
         language: {
             searchPlaceholder: "Search..."
         }
         });
+        $('.viewall').on('click', function() {
+           
+            isServerSide = true; // Switch to server-side processing
+            dataTable.destroy(); // Destroy the current DataTable instance
+            dataTable = $('#uwtickettable').DataTable({
+                "processing": true,
+                "serverSide": isServerSide,
+                "ajax": {
+                    "url": "uwticket_view.php",
+                    "type": "POST",
+                    "data": function(d) {
+                        d.start = d.start || 0;
+                        d.length = d.length || 10;
+                        // d.draw = d.draw || 1;
+                    }
+                },
+                "lengthMenu": [10, 25, 50, 75, 100],
+                "responsive": {
+                    "details": true
+                },
+                "columnDefs": [{
+                    "className": "dt-center",
+                    "targets": "_all"
+                }],
+                "scrollX": true,
+                dom: 'Bfrtip',
+                ordering: true,
+                buttons: [
+                    'pageLength', 'copy', 'excel'
+                ],
+                language: {
+                    searchPlaceholder: "Search..."
+                }
+            });
+        });
     });
+
+ 
+
+$(document).on('click','#search', function(){
+
+
+    var pending=$('#pending').val();
+    var ticketno=$('#ticketno').val();
+    var cfrom=$('#cfrom').val();
+    var cto=$('#cto').val();
+    var afrom=$('#afrom').val();
+    var ato=$('#ato').val();
+    var clfrom=$('#clfrom').val();
+    var clto=$('#clto').val();
+
+    $.ajax({    
+        url:'uwticket_search.php',
+        type:'post',
+        data:{pending:pending,ticketno:ticketno,cfrom:cfrom,cto:cto,afrom:afrom,ato:ato,clfrom:clfrom,clto:clto},
+        success:function(data){
+        
+            $('#putTable').html(data);
+        },
+        error:function(res){
+            console.log(res);
+        }
+    });
+  
+
+});
+//   function Searchname(txtBoxRef) {
+      
+//       var f = true; //check if enter is detected
+//         $(txtBoxRef).keypress(function (e) {
+//             if (e.keyCode == '13' || e.which == '13'){
+//                 f = false;
+//             }
+//         });
+//         $(txtBoxRef).autocomplete({      
+//             source: function( request, response ){
+//                 $.ajax({
+//                     url: "cticketget_data.php",
+//                     type: 'post',
+//                     dataType: "json",
+//                     data: {aname: request.term },
+//                     success: function( data ) {
+//                         console.log(data)
+//                         response( data );
+//                     },
+//                     error:function(data){
+//                         console.log(data);
+//                     }
+//                 });
+//             },
+//             select: function (event, ui) {
+//                 $('#user').val(ui.item.label);
+            
+//                 return false;
+//             },
+//             change: function (event, ui) {
+//                 if(f){
+//                     if (ui.item == null){
+//                         $(this).val('');
+//                         $(this).focus();
+//                     }
+//                 }
+//             },
+//             open: function () {
+//             // Set a higher z-index for the Autocomplete dropdown
+//             $('.ui-autocomplete').css('z-index',1500);
+//            }
+//           });
+//         } 
+        
+// function Searchassignname(txtBoxRef) {
+      
+//         var f = true; //check if enter is detected
+//         $(txtBoxRef).keypress(function (e) {
+//             if (e.keyCode == '13' || e.which == '13'){
+//                 f = false;
+//             }
+//         });
+//         $(txtBoxRef).autocomplete({      
+//             source: function( request, response ){
+//                 $.ajax({
+//                     url: "cticketget_data.php",
+//                     type: 'post',
+//                     dataType: "json",
+//                     data: {aname: request.term },
+//                     success: function( data ) {
+//                         console.log(data)
+//                         response( data );
+//                     },
+//                     error:function(data){
+//                         console.log(data);
+//                     }
+//                 });
+//             },
+//             select: function (event, ui) {
+//                 $('#assignto').val(ui.item.label);
+            
+//                 return false;
+//             },
+//             change: function (event, ui) {
+//                 if(f){
+//                     if (ui.item == null){
+//                         $(this).val('');
+//                         $(this).focus();
+//                     }
+//                 }
+//             },
+//             open: function () {
+//             // Set a higher z-index for the Autocomplete dropdown
+//             $('.ui-autocomplete').css('z-index',1500);
+//            }
+//           });
+//         } 
+function Searchtid(txtBoxRef) {
+            var f = true; //check if enter is detected
+            $(txtBoxRef).keypress(function (e) {
+            if (e.keyCode == '13' || e.which == '13'){
+                f = false;
+            }
+        });
+        $(txtBoxRef).autocomplete({      
+            source: function( request, response ){
+                $.ajax({
+                    url: "cticketget_data.php",
+                    type: 'post',
+                    dataType: "json",
+                    data: {tid: request.term },
+                    success: function( data ) {
+                        console.log(data)
+                        response( data );
+                    },
+                    error:function(data){
+                        console.log(data);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                $('#ticketno').val(ui.item.label);
+            
+                return false;
+            },
+            change: function (event, ui) {
+                if(f){
+                    if (ui.item == null){
+                        $(this).val('');
+                        $(this).focus();
+                    }
+                }
+            },
+            open: function () {
+            // Set a higher z-index for the Autocomplete dropdown
+            $('.ui-autocomplete').css('z-index',1500);
+             // Add a scroll bar to the autocomplete dropdown
+             $('.ui-autocomplete').css({
+                'max-height': '200px', // Set the maximum height for the dropdown
+                'overflow-y': 'auto' // Add vertical scrollbar if needed
+            });
+           }
+          });
+        }
 </script>
 <?php
 

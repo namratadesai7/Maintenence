@@ -17,6 +17,8 @@ if(isset($_POST['save'])){
     $priority=$_POST['priority'];
     $pstop=$_POST['pstop'];
     $img=$_FILES['img']['name']  ?? '';
+    $type=$_POST['type'];
+    $room=$_POST['room'];
  
     if($img!=''){
         $imgExt = substr($img, strripos($img, '.')); // get file extention
@@ -37,7 +39,6 @@ if(isset($_POST['save'])){
         $audioname='';
     }
    
-
     $video = $_FILES['video']['name'] ??'';
     // $videoExt = substr($video, strripos($video, '.')); // get file extention
     if($video!=''){
@@ -48,8 +49,8 @@ if(isset($_POST['save'])){
         $videoname='';
     }
     
-    $sql="INSERT INTO ticket (date,username,mcno,department,plant,issue,remark,priority,pstop,createdBy,image,audio,video)
-        VALUES('$date','$user','$mcno','$dept','$plant','$issue','$remark','$priority','$pstop','".$_SESSION['empid']."','$imgname','$audioname','$videoname')";
+    $sql="INSERT INTO ticket (date,username,mcno,department,plant,issue,remark,priority,pstop,createdBy,image,audio,video,type,room)
+        VALUES('$date','$user','$mcno','$dept','$plant','$issue','$remark','$priority','$pstop','".$_SESSION['empid']."','$imgname','$audioname','$videoname','$type','$room')";
 
     $run=sqlsrv_query($conn,$sql);
 
@@ -76,10 +77,11 @@ if(isset($_POST['update'])){
     $remark=$_POST['remark'];
     $priority=$_POST['priority'];
     $pstop=$_POST['pstop'];
+    $type=$_POST['type'];
+    $room=$_POST['room'];
     
-
-    $sql="UPDATE ticket SET date='$date',username='$user',mcno='$mcno',department='$dept',plant='$plant',issue='$issue',remark='$remark',priority='$priority',pstop='$pstop',updatedBy='".$_SESSION['empid']."'
-    ,updatedAt='".date('Y-m-d')."' where srno='$srno' ";
+    $sql="UPDATE ticket SET date='$date',username='$user',mcno='$mcno',department='$dept',plant='$plant',issue='$issue',remark='$remark',priority='$priority',pstop='$pstop',
+    type='$type',room='$room', updatedBy='".$_SESSION['empid']."',updatedAt='".date('Y-m-d')."' where srno='$srno' ";
     $run=sqlsrv_query($conn,$sql);
 
      if($run){

@@ -6,7 +6,10 @@ if(isset($_POST['save'])){
   //head
   $tid=$_POST['cticket'] ?? '';
   $aid=$_POST['aticket'] ?? '';
+  $sdate=$_POST['sdate'] ?? '';
   $cdate=$_POST['cdate'] ?? '';
+  $sdateFormatted = date('Y-m-d\TH:i:s', strtotime($sdate));
+  $cdateFormatted = date('Y-m-d\TH:i:s', strtotime($cdate));
   $resolved_time=$_POST['resolved_time'] ?? '';
   $unit=$_POST['unit'] ?? '';
   $partschange=$_POST['partschange'] ?? '';
@@ -16,6 +19,7 @@ if(isset($_POST['save'])){
   $approxdate=$_POST['approxdate'] ?? '';
   // $statuss=$_POST['closed'] ?? '';
   //tail
+ 
   $name=$_POST['name'] ?? '';
   $qty=$_POST['qty']?? '';
   $punit=$_POST['punit'] ?? '';
@@ -42,9 +46,9 @@ if(isset($_POST['save'])){
     $isdelay=0;
 
   }
-    $sql="INSERT INTO uwticket_head (ticketid,assignid,c_date,Status,resolved_time,unit,no_of_parts,remark,approx_cdate,createdBy,istransfer,isdelay)
-    VALUES('$tid','$aid','$cdate','$cstatus','$resolved_time','$unit','$noparts','$rem','$approxdate','".$_SESSION['uname']."','$istransfer','$isdelay') ";
-   $run=sqlsrv_query($conn,$sql);
+    $sql="INSERT INTO uwticket_head (ticketid,assignid,s_date,c_date,Status,resolved_time,unit,no_of_parts,remark,approx_cdate,createdBy,istransfer,isdelay)
+    VALUES('$tid','$aid','$sdateFormatted','$cdateFormatted','$cstatus','$resolved_time','$unit','$noparts','$rem','$approxdate','".$_SESSION['uname']."','$istransfer','$isdelay') ";
+    $run=sqlsrv_query($conn,$sql);
 
   if($partschange=='yes'){
 

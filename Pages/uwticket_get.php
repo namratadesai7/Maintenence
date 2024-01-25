@@ -3,12 +3,22 @@ if(isset($_POST['sta'])){
 
     if($_POST['sta']=='closed'){
         ?>
-        <label style="width: 25%;" class="form-label m-1" for="cdate">Close Date
-            <input class="form-control" type="date" name="cdate" id="cdate" >
-            <input type="text" name="closed" value="closed">
+
+
+        <label style="width: 25%;" class="form-label m-1" for="sdate">Start Date
+        <input class="form-control" type="datetime-local" id="sdate" name="sdate">
         </label>
 
-        <label style="width: 25%;"  for="resolved_time">Resolved Time
+        <label style="width: 25%;" class="form-label m-1" for="cdate">Close Date
+            <input class="form-control" type="datetime-local" name="cdate" id="cdate" >
+            <input type="hidden" name="closed" value="closed">
+        </label>
+
+        <label style="width: 25%;" class="form-label m-1" for="resolved_time">Resolve Time
+            <input class="form-control" type="text" id="resolved_time" name="resolved_time" readonly>
+        </label>
+
+        <!-- <label style="width: 25%;"  for="resolved_time">Resolved Time
             <div class="input-group">
                 <input type="number" name="resolved_time" id="resolved_time" class="form-control ms-1 mt-1 " required>
                 <select name="unit" id="unit" class="form-control me-1 mt-1">
@@ -17,7 +27,7 @@ if(isset($_POST['sta'])){
                     <option value="months">Months</option>
                 </select>
              </div>
-        </label>
+        </label> -->
         
         <label style="width: 25%;" for="partschange">Parts Change
             <div class="input-group">
@@ -30,7 +40,7 @@ if(isset($_POST['sta'])){
             </div>
         </label>
 
-        <label style="width: 25%;" class="form-label m-1" for="rem">Remark
+        <label style="width:25%;" class="form-label m-1" for="rem">Remark
             <input type="text" class="form-control" name="rem" id="rem">
         </label> 
 
@@ -52,7 +62,7 @@ if(isset($_POST['sta'])){
         </script>
         <?php
 
-            }
+    }
   
     if($_POST['sta']=='delay'){
         ?>
@@ -85,6 +95,7 @@ if(isset($_POST['no'])){
     <thead class="bg-secondary text-light">
         <tr>
             <th>Sr</th>
+            <th>RMTA Number</th>
             <th>Item Name</th>
             <th>Qty</th>            
             <th>Unit</th>
@@ -101,8 +112,15 @@ if(isset($_POST['no'])){
                 <?php
                 $sql="select item FROM [RM_software].[dbo].[rm_item] ";
                 ?>
-                <td><input class="form-control" type="text" name="name[]" class="name" onFocus="Searchname(this)"></td>
-                <td><input type="text" name="qty[]" id="qty"></td>
+                <td><input class="form-control rmta" type="text" name="rmta[]" onFocus="Searchrmta(this)" ></td>
+                <!-- <td><input class="form-control name" type="text" name="name[]" onFocus="Searchitemname(this)"></td> -->
+                <td>
+                    <select  style="width:270px;" class="form-select name" name="name[]" id="name">
+                        <option value=""></option>
+                      
+                    </select>
+                </td>
+                <td><input style="width:27px;" type="text" name="qty[]" id="qty" autocomplete="off"></td>
                 <td><input type="text" class="punit" name="punit[]"  onFocus="Searchunit(this)"></td>
                 <td>
                     <select class="form-select" name="status[]" >
@@ -120,12 +138,38 @@ if(isset($_POST['no'])){
     ?>
     </tbody>
 </table>
-
-    <?php
+<?php
 }
 ?>
 <script>
-     function Searchunit(txtBoxRef) {
+     // Add an event listener to the close date input
+     document.getElementById('cdate').addEventListener('change', function () {
+        // Get the values of the start date and close date
+        var startDateValue = document.getElementById('sdate').value;
+        var closeDateValue = this.value;
+
+        // Check if both start date and close date are selected
+        if (startDateValue && closeDateValue) {
+            // Convert the values to Date objects
+            var startDate = new Date(startDateValue);
+            var closeDate = new Date(closeDateValue);
+
+            // Calculate the time difference in milliseconds
+            var timeDifference = closeDate - startDate;
+
+            // Calculate hours, minutes, and seconds from milliseconds
+            var hours = Math.floor(timeDifference / 3600000);
+            var minutes = Math.floor((timeDifference % 3600000) / 60000);
+            var seconds = Math.floor((timeDifference % 60000) / 1000);
+
+            // Display the time difference in the third input field
+            document.getElementById('resolved_time').value = hours + 'h ' + minutes + 'm ' + seconds + 's';
+        } else {
+            // If either start date or close date is not selected, clear the third input field
+            document.getElementById('resolved_time').value = '';
+        }
+    });
+    function Searchunit(txtBoxRef) {
       
       var f = true; //check if enter is detected
       $(txtBoxRef).keypress(function (e) {
@@ -166,5 +210,142 @@ if(isset($_POST['no'])){
           $('.ui-autocomplete').css('width', '300px'); 
          }
       });
-  } 
+    } 
+
+    function Searchrmta(txtBoxRef) {
+      
+      var f = true; //check if enter is detected
+      $(txtBoxRef).keypress(function (e) {
+          if (e.keyCode == '13' || e.which == '13'){
+              f = false;
+          }
+      });
+      $(txtBoxRef).autocomplete({      
+          source: function( request, response ){
+              $.ajax({
+                  url: "cticketget_data.php",
+                  type: 'post',
+                  dataType: "json",
+                  data: {rmta: request.term },
+                  success: function( data ) {
+                      response( data );
+                  },
+                  error:function(data){
+                      console.log(data);
+                  }
+              });
+          },
+          select: function (event, ui) {
+              $(this).val(ui.item.label);
+              return false;
+          },
+          change: function (event, ui) {
+              if(f){
+                  if (ui.item == null){
+                      $(this).val('');
+                      $(this).focus();
+                  }
+              }
+          },
+          open: function () {
+          // Set a higher z-index for the Autocomplete dropdown
+          $('.ui-autocomplete').css('z-index',1500);
+          $('.ui-autocomplete').css('width', '300px'); 
+         }
+      });
+    } 
+
+
+    $(document).ready(function () {
+    $(document).on('click', '#name', function () {
+    var selectElement = $(this);
+    var rmta = selectElement.closest('tr').find('.rmta').val();
+    console.log(rmta);
+
+    $.ajax({
+        url: "cticketget_data.php",
+        type: 'post',
+        dataType: "json",
+        data: { rmtano: rmta },
+        success: function (data) {
+
+            console.log("sds")
+            // Clear existing options
+            selectElement.empty();
+
+            // Check if data is not empty and is an array
+            if (Array.isArray(data) && data.length > 0) {
+                // Append new options based on the received data
+                $.each(data, function (index, item) {
+                    selectElement.append($('<option>', {
+                        value: item.label,
+                        text: item.label
+                    }));
+                });
+            } else {
+                console.log("Empty or invalid data received from the server");
+            }
+        },
+        error: function (data) {
+            console.log("AJAX request failed:", data);
+        }
+    });
+});
+    });
+
+
+
+
+//     function Searchitemname(txtBoxRef) {
+      
+//             var rmta = $('.rmta').val();
+           
+//             var f = true; // flag to check if enter key is detected
+
+//             $(txtBoxRef).keypress(function (e) {
+//                 if (e.keyCode == 13 || e.which == 13) {
+//                     f = false;
+//                 }
+//             });
+
+//             $(txtBoxRef).autocomplete({
+//                 source: function (request, response) {
+//                     $.ajax({
+//                         url: "cticketget_data.php",
+//                         type: 'post',
+//                         dataType: "json",
+//                         data: { itname: request.term, rmtano: rmta },
+//                         success: function (data) {
+//                             response(data);
+//                         },
+//                         error: function (data) {
+//                             console.log(data);
+//                         }
+//                     });
+//                 },
+//                 select: function (event, ui) {
+//                     $(this).val(ui.item.label);
+//                     return false;
+//                 },
+//                 change: function (event, ui) {
+//                     if (f && ui.item == null) {
+//                         $(this).val('');
+//                         $(this).focus();
+//                     }
+//                 },
+//                 open: function () {
+//                     // Set a higher z-index for the Autocomplete dropdown
+//                     $('.ui-autocomplete').css('z-index', 1500);
+//                     $('.ui-autocomplete').css('width', '300px');
+//                 }
+//             });
+
+//             // Trigger the autocomplete when the input field is clicked with the mouse
+//             $(txtBoxRef).click(function () {
+//                 console.log("Input field clicked");
+//                 $(this).autocomplete("search", "");
+//             });
+// }
+
+
 </script>

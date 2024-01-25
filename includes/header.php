@@ -2,10 +2,7 @@
 date_default_timezone_set('Asia/Kolkata');
 
 include('session.php');
-
 include('dbcon.php');
-
-
 ?>
 
 <!DOCTYPE html>
@@ -181,4 +178,4 @@ include('dbcon.php');
             </div>
         </header>
 
-        <main>  
+<main>  

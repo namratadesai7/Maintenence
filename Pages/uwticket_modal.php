@@ -25,7 +25,7 @@ $aid=$_POST['aid'];
                 <option value=""></option>
                 <option value="closed">Close</option>
                 <option value="delay">Delay</option>
-                <option value="transfer">Transfer</option>
+                <option value="transfer">Deny</option>
             </select>
             <input type="hidden" id="cticet" name="cticket" value="<?php echo $tid ?>" >
             <input type="hidden" id="aticket" name="aticket" value="<?php echo $aid ?>" >

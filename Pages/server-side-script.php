@@ -1,6 +1,6 @@
 <?php
 include('../includes/dbcon.php');
-
+session_start();
 // Example: Fetch data based on requested page and length
 $page = $_POST['start'] / $_POST['length'] + 1; // Adjust as needed
 $length = $_POST['length'];
@@ -10,13 +10,19 @@ $length = $_POST['length'];
 // Calculate OFFSET based on the current page and length
 $offset = ($page - 1) * $length;
 
+$condition='';
+if( $_SESSION['urights']!="admin"){
+
+    $condition.=" and (a.istransfer=0 or a.istransfer is null) and username='".$_SESSION['sname']."'";
+}
+
 // Increase the offset by 10 on every call
 // $offset += 10 * ($_POST['draw'] - 1);
 
 // Your database query to fetch data using OFFSET and FETCH
-$sql = "SELECT u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,t.image,t.audio,t.video,u.ticketid,a.assign_to,a.approx_time,a.unit,a.istransfer,u.istransfer as utrans
+$sql = "SELECT  u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,t.image,t.audio,t.video,u.ticketid,a.assign_to,a.approx_time,a.unit,a.istransfer,u.istransfer as utrans
 ,a.update_assign FROM assign a full outer join ticket t on a.ticket_id =t.srno
-full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0  
+full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0".$condition."
 ORDER BY 
     t.srno
         OFFSET ".$offset." ROWS

@@ -55,32 +55,30 @@ $date=date('Y-m-d');
             <div class="divCss">
                 <form action="urights_db.php" method="post">          
                     <div class="row px-2">
+                        <label class="form-label col-lg-3 col-md-6" for="empid">EMP ID                  
+                            <input class="form-control" type="text" id="empid" name="empid"> 
+                        </label>
                    
-                     
                         <label class="form-label col-lg-3 col-md-6" for="user">User Name                  
-                            <input class="form-control" id="user" type="text" name="user"  value="<?php echo $_SESSION['uname']  ?>">
-                            <input type="hidden" id=empid name="empid" value="<?php echo $_SESSION['empid'] ?>"> 
+                            <input class="form-control" id="user" type="text" name="user" >                          
                         </label>
                     
                         <label class="form-label col-lg-3 col-md-6" for="sname">Add Sort Name                  
-                            <input class="form-control" id="sname" type="text" name="sname" value="<?php echo $_SESSION['sname'] ?>"  >
+                            <input class="form-control" id="sname" type="text" name="sname"  >
                         </label>
                      
-                        <label class="form-label col-lg-3 col-md-6" for="urights">User Right
-                                <select class="form-select" name="urights" id="urights" value="<?php echo $_SESSION['urights'] ?>">
-                                    <option value=""></option>
-                                    <option <?php if($_SESSION['urights']=='admin'){ ?> selected  <?php } ?> value="admin">Admin</option>
-                                    <option <?php if($_SESSION['urights']=='user'){ ?> selected  <?php } ?> value="user">User</option>
-                                    <option <?php if($_SESSION['urights']=='assign'){ ?> selected  <?php } ?>value="assign">Assign</option>
-                                    <option <?php if($_SESSION['urights']=='team'){ ?> selected  <?php } ?> value="team">Team</option>
+                        <label class="form-label col-lg-3 col-md-6" for="urights" >User Right
+                                <select class="form-select" name="urights" id="urights" >
+                                    <option selected default value=""></option>
+                                    <option value="admin">Admin</option>
+                                    <option value="user">User</option>
+                                    <option value="assign">Assign</option>
+                                    <option  value="team">Team</option>
                                 </select>
-                            </label>   
-
+                        </label>   
                     </div> 
 
                     <div class="row ps-2 mt-2">
-                       
-                        
                             <div class="col"></div>
                             <div class="col-auto mt-2">
                                 <a href="cticket.php" type="button" class="btn rounded-pill btn-danger mt-3">Back</a>
@@ -96,11 +94,24 @@ $date=date('Y-m-d');
 
 <script>
   $('#urights').addClass('active');
-
- 
+  $(document).on('change','#empid',function(){
+    var id=$(this).val();
+    $.ajax({    
+        url:'urights_findname.php',
+        type:'post',
+        data:{id:id},
+        success:function(data){
+            console.log(data)
+        
+            $('#user').val(data);
+        },
+        error:function(res){
+            console.log(res);
+        }
+    });
+  })
 
 </script>
 <?php
-
 include('../includes/footer.php');
 ?>

@@ -1,27 +1,33 @@
 <script>
     $(document).ready(function() {
         var id=$('#empid').val();
+   
       
-        if(id<3000){
+        if(id<3000 && id!=1018 && id!=1052){
             $('.hide').hide();
         }
         else{
             var rights=$('#rights').val();
+
             if(rights=='user'){
                 $('#aticket').hide();
                 $('#uwticket').hide();
+                $('#urights').hide();
             }
             else if(rights=='assign'){
                 $('#cticket').hide();
                 $('#uwticket').hide();
+                $('#urights').hide();
 
             }else if(rights=='team'){
                 $('#cticket').hide();
                 $('#aticket').hide();
-
-
-            }
+                $('#urights').hide();
+             
         }
+    }
+
+       
     });
 
 

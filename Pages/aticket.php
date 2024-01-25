@@ -1,45 +1,55 @@
+
 <?php
 include('../includes/dbcon.php');
 include('../includes/header.php');
 
-$sql="	WITH abc AS (
+$teamlead=$_SESSION['isteamlead'];
 
-    SELECT COUNT(*) AS cnt, ticket_id
-    FROM assign
-    GROUP BY ticket_id
-    HAVING COUNT(*) % 2 = 0 
-    
-    ),
-     XYZ as(SELECT COUNT(*) AS cnt, ticketid
-        FROM uwticket_head 
-        GROUP BY ticketid HAVING  COUNT(*) % 2 = 1 
-    AND SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) > 0
-    )
-    SELECT top 200
-       a.istransfer, t.srno, a.ticket_id, t.date, t.username, t.mcno, t.department, t.plant,
-       t.issue, t.remark, t.pstop,t.image,t.audio,t.video,a.srno AS asr, a.assign_to, FORMAT(assign_date, 'yyyy-MM-dd') AS adate,
-       a.approx_time, t.priority, t.pstop, a.unit, a.update_assign, a.cat, a.subcat, a.role,
-       u.resolved_time, u.approx_cdate
-    FROM
-       assign a
-    FULL OUTER JOIN
-       ticket t ON a.ticket_id = t.srno
-    FULL OUTER JOIN
-       uwticket_head u ON u.ticketid = a.ticket_id
-    
-    WHERE
-     t.isdelete=0 and (approx_cdate='1900-01-01' and  resolved_time='')
-     and ticket_id not in(select ticket_id from abc
-    ) and ticket_id not in(select ticketid from xyz)or assign_to is null
-";
+$condition='';
+if($teamlead=='tool'){
+    $condition.=" and t.room='tool' "  ;
+
+}else if($teamlead=='maint'){
+    $condition.=" and t.room='maintenance'";
+}
+    $sql="	WITH abc AS (
+
+        SELECT COUNT(*) AS cnt, ticket_id
+        FROM assign
+        GROUP BY ticket_id
+        HAVING COUNT(*) % 2 = 0 
+        ),
+        XYZ as(SELECT COUNT(*) AS cnt, ticketid
+            FROM uwticket_head 
+            GROUP BY ticketid HAVING  COUNT(*) % 2 = 1 
+        AND SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) > 0
+        )
+        SELECT top 100
+        a.istransfer, t.srno, a.ticket_id, t.date, t.username, t.mcno, t.department, t.plant,
+        t.issue, t.remark, t.pstop,t.image,t.audio,t.video,t.room,a.srno AS asr, a.assign_to, FORMAT(assign_date, 'yyyy-MM-dd') AS adate,
+        a.approx_time, t.priority, t.pstop, a.unit, a.update_assign, a.cat, a.subcat, a.role,
+        u.resolved_time, u.approx_cdate
+        FROM
+        assign a
+        right  join
+        ticket t ON a.ticket_id = t.srno
+        left join
+        uwticket_head u ON u.ticketid = a.ticket_id
+        
+        WHERE
+        t.isdelete=0 and (approx_cdate='1900-01-01' and  resolved_time='')
+        and ticket_id not in(select ticket_id from abc
+        ) and ticket_id not in(select ticketid from xyz)or assign_to is null".$condition;
+
 $run =sqlsrv_query($conn,$sql);
 $at=$row1['assign_to'] ?? '' ;
 ?>
 <title>
     Assign Ticket
 </title>
+
 <style>
-      #aud{
+    #aud{
         width:80px ;
         height: 40px;
     }
@@ -73,7 +83,7 @@ $at=$row1['assign_to'] ?? '' ;
         font-weight:500;
     }
 
-    .pending {
+     .pendingg {
         background: #FFC04C !important;
     }
 
@@ -101,13 +111,82 @@ $at=$row1['assign_to'] ?? '' ;
             padding-top: 10px;
         }
     }
+    
 </style>
 <div class="container-fluid fl">
+    <form id="report">
+        <div class="divCss ">           
+            <div class="row px-2">
+                
+                <!-- <label class="form-label col-lg-3 col-md-6" for="user">Created By     
+                    <input type="text" class="form-control searchInput user" name="user" id="user" onFocus="Searchname(this)" placeholder="User Name"></input>
+                </label>
+
+                <label class="form-label col-lg-3 col-md-6" for="assignto">Assign to     
+                    <input type="text" class="form-control searchInput assignto" name="assignto" id="assignto" onFocus="Searchassignname(this)" placeholder="Assign to"></input>
+                </label> -->
+
+                <label class="form-label col-lg-3 col-md-6" for="pending">Pending     
+                    <!-- <input type="text" class="form-control searchInput pending" name="pending" id="pending"  placeholder="User Name"></input> -->
+                    <select class="form-select searchInput pending" name="pending" id="pending">
+                        <option selected default value=""></option>
+                        <option value="assigned">Assigned</option>
+                        <option value="unassigned">Unassigned</option>
+                        <option value="closed">Closed</option>
+                        <option value="delayed">Delayed</option>
+                        <option value="transferred">Transferred</option>
+                    </select>
+                </label>
+
+                <label class="form-label col-lg-3 col-md-6" for="ticketno">Ticket No.     
+                    <input type="text" class="form-control searchInput ticketno" name="ticketno" id="ticketno"  onFocus="Searchtid(this)"  placeholder="Ticket No."></input> 
+                </label>
+                
+                <label class="form-label col-lg-3 col-md-6" for="cfrom">Created From
+                    <input type="date" class="form-control searchInput cfrom" name="cfrom" id="cfrom" ></input>
+                </label>    
+
+                <label class="form-label col-lg-3 col-md-6" for="cto">Created To
+                    <input type="date" class="form-control searchInput cto" name="cto" id="cto" ></input>
+                </label>
+            </div>
+            <div class="row px-2">
+                <!-- <label class="form-label col-lg-2 col-md-6" for="cfrom">Created From
+                    <input type="date" class="form-control searchInput cfrom" name="cfrom" id="cfrom" ></input>
+                </label>    
+
+                <label class="form-label col-lg-2 col-md-6" for="cto">Created To
+                    <input type="date" class="form-control searchInput cto" name="cto" id="cto" ></input>
+                </label>  -->
+
+                 <label class="form-label col-lg-3 col-md-6" for="afrom">Assigned From
+                    <input type="date" class="form-control searchInput afrom" name="afrom" id="afrom" ></input>
+                </label>    
+
+                <label class="form-label col-lg-3 col-md-6" for="ato">Assigned To
+                    <input type="date" class="form-control searchInput ato" name="ato" id="ato" ></input>
+                </label> 
+<!-- 
+                <label class="form-label col-lg-2 col-md-6" for="clfrom">Closed From
+                    <input type="date" class="form-control searchInput clfrom" name="clfrom" id="clfrom" ></input>
+                </label>    
+
+                <label class="form-label col-lg-2 col-md-6" for="clto">Closed To
+                    <input type="date" class="form-control searchInput clto" name="clto" id="clto" ></input>
+                </label>                -->
+            </div>
+            <div class="row">
+                <div class="col"></div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-rounded rounded-pill btn-danger search" id="search">Search</button>                         
+                </div>
+            </div>
+        </div><br>
+    </form>    
     <div class="row mb-3">
         <div class="col">
             <h4 class="pt-2 mb-0 ">Assign Tickets</h4>
         </div>
-
     </div>
     <div id="putTable" class="divCss">
         <table class="table table-bordered text-center table-striped table-hover mb-0 " id="assignTable">
@@ -126,6 +205,7 @@ $at=$row1['assign_to'] ?? '' ;
                     <th>Plant</th>
                     <th>Issue</th>
                     <th>Img/Aud/Vid</th>
+                    <th>Type</th>
                     <th>Remark</th>
                     <th>Assign<br>To</th>
                     <th>Assign<br>Date</th>
@@ -146,7 +226,7 @@ $at=$row1['assign_to'] ?? '' ;
                             <td><?php echo $sr ?></td>
                             <td style="padding: 3px 6px !important;"> 
                                   
-                                  <a type="button" class="btn btn-success btn-sm assign rounded-pill assign-button" id="<?php echo $row['srno'] ?>"
+                                <a type="button" class="btn btn-success btn-sm assign rounded-pill assign-button" id="<?php echo $row['srno'] ?>"
                                     data-name="<?php echo $row['asr'] ?>" >Assign</a> 
                             
                                  <!-- <a type="button" class="btn btn-primary rounded-pill btn-sm edit"                                
@@ -159,7 +239,8 @@ $at=$row1['assign_to'] ?? '' ;
                             <td><?php echo $row['srno'] ?></td>
                             <td> <?php echo $row['priority'] ?></td>
                             <td> <?php echo $row['pstop'] ?></td>
-                            <?php
+                           
+                          <?php
                             if($row['ticket_id']==null){
                                 ?>
                                 <td class="st">Unassigned</td>
@@ -169,13 +250,15 @@ $at=$row1['assign_to'] ?? '' ;
                                   <td class="st">Transfer</td>   
                                 <?php
                             }
-                            ?>                                                                                      
+                            ?>                                                                               
                             <td><?php echo $row['date']->format('d-m-Y') ?></td>
                             <td><?php echo $row['username'] ?></td>
                             <td><?php echo $row['mcno'] ?></td>
                             <td><?php echo $row['department']?></td>
                             <td><?php echo $row['plant']?></td>
                             <td><?php echo $row['issue']?></td>
+
+                        
 
                             <td  style="padding: 3px 6px !important;" id="img"  data-name="<?php echo $row['srno'] ?>">
                             <?php
@@ -198,7 +281,8 @@ $at=$row1['assign_to'] ?? '' ;
 
                              }
                             ?>
-                        </td>
+                            </td>
+                            <td><?php echo $row['room']=='maintenance' ? 'main' : $row['room'] ?></td>
                             <td><?php echo $row['remark']?></td>
                             <td><?php echo $row['assign_to'] ?? '' ?></td>
                             <td> <?php echo $row['adate'] ?? '' ?></td>
@@ -289,7 +373,6 @@ include('../includes/footer.php');
 
     $(document).on('click', '#img', function() {
     var id=$(this).data('name');
-    console.log(id);
         
     $.ajax({
                 url: 'cticket_img.php',
@@ -329,8 +412,6 @@ include('../includes/footer.php');
         var sr = $(this).attr('id');
         var st= $(this).closest('tr').find('.st').text();
         var asr = $(this).data('name');
-        console.log(asr)
-        console.log(st)
         
         $.ajax({
             url: 'aticket_modal.php',
@@ -446,7 +527,7 @@ include('../includes/footer.php');
                     // }
                 },
                 {
-                    text:'Pending', className:'pending',
+                    text:'Pending', className:'pendingg',
                     action:function(){
                         $('#spinLoader').html('<span class="spinner-border spinner-border-lg mx-2"></span><p>Loading..</p>');
                         $('#putTable').css({"opacity":"0.5"});
@@ -469,7 +550,7 @@ include('../includes/footer.php');
             }
         });
         $('.viewall').on('click', function() {
-            console.log("Sds")
+         
             isServerSide = true; // Switch to server-side processing
             dataTable.destroy(); // Destroy the current DataTable instance
             dataTable = $('#assignTable').DataTable({
@@ -492,10 +573,17 @@ include('../includes/footer.php');
                     "className": "dt-center",
                     "targets": "_all"
                 }],
+                "scrollX": true,
                 dom: 'Bfrtip',
                 ordering: true,
                 buttons: [
-                    'pageLength', 'copy', 'excel'
+                    'pageLength', 'copy', 'excel',
+                    {
+                        text:'Back', className:'back',
+                        action:function(){
+                            window.location.reload();
+                        }
+                    }
                 ],
                 language: {
                     searchPlaceholder: "Search..."
@@ -503,6 +591,166 @@ include('../includes/footer.php');
             });
         });
     });
+
+    $(document).on('click','#search', function(){
+
+        var pending=$('#pending').val();
+        var ticketno=$('#ticketno').val();
+        var cfrom=$('#cfrom').val();
+        var cto=$('#cto').val();
+        var afrom=$('#afrom').val();
+        var ato=$('#ato').val();
+   
+        $.ajax({    
+            url:'aticket_search.php',
+            type:'post',
+            data:{pending:pending,ticketno:ticketno,cfrom:cfrom,cto:cto,afrom:afrom,ato:ato},
+            success:function(data){
+            
+                $('#putTable').html(data);
+            },
+            error:function(res){
+                console.log(res);
+            }
+        });
+
+
+    });
+
+    function Searchname(txtBoxRef) {
+      
+      var f = true; //check if enter is detected
+        $(txtBoxRef).keypress(function (e) {
+            if (e.keyCode == '13' || e.which == '13'){
+                f = false;
+            }
+        });
+        $(txtBoxRef).autocomplete({      
+            source: function( request, response ){
+                $.ajax({
+                    url: "cticketget_data.php",
+                    type: 'post',
+                    dataType: "json",
+                    data: {aname: request.term },
+                    success: function( data ) {
+                        console.log(data)
+                        response( data );
+                    },
+                    error:function(data){
+                        console.log(data);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                $('#user').val(ui.item.label);
+            
+                return false;
+            },
+            change: function (event, ui) {
+                if(f){
+                    if (ui.item == null){
+                        $(this).val('');
+                        $(this).focus();
+                    }
+                }
+            },
+            open: function () {
+            // Set a higher z-index for the Autocomplete dropdown
+            $('.ui-autocomplete').css('z-index',1500);
+           }
+          });
+        } 
+        
+    function Searchassignname(txtBoxRef) {
+      
+        var f = true; //check if enter is detected
+        $(txtBoxRef).keypress(function (e) {
+            if (e.keyCode == '13' || e.which == '13'){
+                f = false;
+            }
+        });
+        $(txtBoxRef).autocomplete({      
+            source: function( request, response ){
+                $.ajax({
+                    url: "cticketget_data.php",
+                    type: 'post',
+                    dataType: "json",
+                    data: {aname: request.term },
+                    success: function( data ) {
+                        console.log(data)
+                        response( data );
+                    },
+                    error:function(data){
+                        console.log(data);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                $('#assignto').val(ui.item.label);
+            
+                return false;
+            },
+            change: function (event, ui) {
+                if(f){
+                    if (ui.item == null){
+                        $(this).val('');
+                        $(this).focus();
+                    }
+                }
+            },
+            open: function () {
+            // Set a higher z-index for the Autocomplete dropdown
+            $('.ui-autocomplete').css('z-index',1500);
+           }
+          });
+        } 
+function Searchtid(txtBoxRef) {
+            var f = true; //check if enter is detected
+            $(txtBoxRef).keypress(function (e) {
+            if (e.keyCode == '13' || e.which == '13'){
+                f = false;
+            }
+        });
+        $(txtBoxRef).autocomplete({      
+            source: function( request, response ){
+                $.ajax({
+                    url: "cticketget_data.php",
+                    type: 'post',
+                    dataType: "json",
+                    data: {tid: request.term },
+                    success: function( data ) {
+                       
+                        response( data );
+                    },
+                    error:function(data){
+                        console.log(data);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                $('#ticketno').val(ui.item.label);
+            
+                return false;
+            },
+            change: function (event, ui) {
+                if(f){
+                    if (ui.item == null){
+                        $(this).val('');
+                        $(this).focus();
+                    }
+                }
+            },
+            open: function () {
+            // Set a higher z-index for the Autocomplete dropdown
+            $('.ui-autocomplete').css('z-index',1500);
+             // Add a scroll bar to the autocomplete dropdown
+             $('.ui-autocomplete').css({
+                'max-height': '200px', // Set the maximum height for the dropdown
+                'overflow-y': 'auto' // Add vertical scrollbar if needed
+            });
+           }
+          });
+        }
     // $(document).ready(function(){
 	// 	var table = $('#scrapTable').DataTable({   // initializes a DataTable using the DataTables library 
 	// 	    "processing": true,                  //This option enables the processing indicator to be shown while the table is being processed

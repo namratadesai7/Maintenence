@@ -75,6 +75,24 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
                     </Audio>   -->
                 </label>
 
+                <label class="form-label col-lg-3 col-md-6" for="type">Type 
+                    <select  class="form-select" name="type" id="type">
+                        <option value=""></option>
+                        <option <?php if($row['type']=='New'){ ?> selected <?php } ?> >New</option>
+                        <option <?php if($row['type']=='Repair'){ ?> selected <?php } ?> >Repair</option>
+                    </select>                                                 
+                </label>
+
+                <label class="form-label col-lg-3 col-md-6" for="room">Room 
+                    <select  class="form-select" name="room" id="room">
+                        <option value=""></option>
+                        <option <?php if($row['room']=='tool'){ ?> selected <?php } ?> value="tool" >Tool Room</option>
+                        <option <?php if($row['room']=='maintenance'){ ?> selected <?php } ?> value="maintenance" >Maintenance room</option>
+                    </select>                  
+                </label> 
+
+            </div>
+            <div class="row ps-2">
 
                 <label class="form-label col-lg-3 col-md-6" for="remark">Remark
                     <input class="form-control" id="remark" type="text" name="remark"
@@ -97,9 +115,6 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
                         <option <?php if($row['pstop']=="no"){ ?> selected <?php } ?> value="no">No</option>
                     </select>
                 </label>
-
-            </div>
-            <div class="row ps-2">
                 <label class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
                     <br>
                     <input class="form-check-input" type="radio" name="priority" value="low" id="flexRadioDefault1"
@@ -138,6 +153,16 @@ $row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC);
 
 <script>
 $('#cticket').addClass('active');
+
+$(document).on('change','#type',function(){
+        var type=$(this).val();
+        if(type=='New'){
+            $('#room').val("tool");
+        }else{
+            $('#room').val("maintenance");
+        }
+        
+    })
 
 function Searchmc(txtBoxRef) {
       

@@ -1,342 +1,347 @@
 <?php
-include('../includes/dbcon.php');
-include('../includes/header.php'); 
+if(isset($_POST['sta'])){
 
-$date=date('Y-m-d');
-$sname=$_SESSION['sname'] ?? '';
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    if($_POST['sta']=='closed'){
+        ?>
 
-    <!-- included css drop down Serching -->
-	<link href='../css/select2.min.css' rel='stylesheet' type='text/css'>
-    <title>Create ticket</title>
-    <style>
+
+        <label style="width: 25%;" class="form-label m-1" for="sdate">Start Date
+        <input class="form-control" type="datetime-local" id="sdate" name="sdate">
+        </label>
+
+        <label style="width: 25%;" class="form-label m-1" for="cdate">Close Date
+            <input class="form-control" type="datetime-local" name="cdate" id="cdate" >
+            <input type="hidden" name="closed" value="closed">
+        </label>
+
+        <label style="width: 25%;" class="form-label m-1" for="resolved_time">Resolve Time
+            <input class="form-control" type="text" id="resolved_time" name="resolved_time" readonly>
+        </label>
+
+        <!-- <label style="width: 25%;"  for="resolved_time">Resolved Time
+            <div class="input-group">
+                <input type="number" name="resolved_time" id="resolved_time" class="form-control ms-1 mt-1 " required>
+                <select name="unit" id="unit" class="form-control me-1 mt-1">
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                    <option value="months">Months</option>
+                </select>
+             </div>
+        </label> -->
         
-        .hidden {
-            display: none;
-        }
-        /* .tog{
-            display:flex;
-        }
-         */
-        .divCss {
-        background-color: white;
-        padding: 20px;
-        border-radius: 5px;
-        box-shadow: 0 1rem 2rem rgba(132, 139, 200, 0.18);
-        }
-        .fl{
-            margin-top:2rem;
-        }
-        /*ADD dropdown searching*/
-		.select2-container {
-			max-width: 100%;
-		}
-		.select2-container .select2-selection--single{
-			height:39px !important;
-			border: 1px solid #ccc !important;
-		}
-
-        /* .abc{
-            margin:20px;
-            padding-top:20px;
-            /* padding-bottom:20px;
-            padding-left:250px !important;     */
-            text-align:center;
-                } */
-        /* .col{
-            text-align:center;
-        } */
-        
-        /* .btn1{
-            /* margin-top:10px;
-            padding-left:40%;
-            padding-right:40%;
-            width:100%; */
-            /* align-items:center;
-            padding-top:40px;
-            padding-left:350px;
-         */
-         text-align:center;
-         margin-top:40px;
-        } */
-
- 
-
-    </style>
-</head>
-<body>
-        <div class="container-fluid fl">
-            <div class="row mb-3">
-                <div class="col">
-                    <h4 class="pt-2 mb-0">Create Ticket</h4>
-                </div>
+        <label style="width: 25%;" for="partschange">Parts Change
+            <div class="input-group">
+                <select name="partschange" id="partschange" class="form-control mt-1 custom-width">
+                    <option value=""></option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+                <input class="form-control mt-1 custom-width hidden" type="number" id="numberOfParts" name="numberOfParts" placeholder="no. of parts">
             </div>
-            <div class="divCss">
-                <form action="cticket_db.php" method="post" autocomplete="off">          
-                    <div class="row px-2">
-                   
-                        <label class="form-label col-lg-3 col-md-6" for="date">Date  
-                            <input class="form-control" id="date" type="date" name="date" value="<?php echo $date ?>">              
-                        </label>
-                
-                        <label class="form-label col-lg-3 col-md-6" for="user">Created By                   
-                            <!-- <input class="form-control" id="user" type="text" name="user" value="<?php echo $sname ?>" onFocus="Searchname(this)" > -->
-                            <select name="user" id="user" class="form-control user">
-                                <option></option>
-                                <?php 
-                                    $query = "SELECT sortname1  FROM [Workbook].[dbo].[user] where sortname1 is not NULL";
-                                    $run = sqlsrv_query($conn,$query);
-                                    while($row=sqlsrv_fetch_array($run,SQLSRV_FETCH_ASSOC)){
-                                ?>
-                                <option <?php if($row['sortname1']==$sname){ ?> selected <?php  } ?>><?php echo $row['sortname1'] ?></option>
-                                <?php } ?>
-                            </select>
-                        </label>
-                    
-                        <label class="form-label col-lg-3 col-md-6" for="mcno">M/c No                     
-                            <input class="form-control" id="mcno" type="text" name="mcno" onFocus="Searchmc(this)" >
-                        </label>
-    
-                        <label class="form-label col-lg-3 col-md-6" for="dept">Department
-                            <input class="form-control" id="dept" type="text" name="dept"  >
-                        </label>    
-                 
-                        <label class="form-label col-lg-3 col-md-6" for="plant">Plant                    
-                            <!-- <input class="form-control" id="plant" type="text" name="plant" value=""> -->
-                            <select class="form-select" name="plant" id="plant" >
-                                <option selected default value=""></option>
-                                <option value="1701">1701</option>
-                                <option value="696">696</option>
-                                <option value="2205">2205</option>
-                                <option value="Jarod">Jarod</option>
-                            </select>
-                        </label>
-                
-                        <label class="form-label col-lg-3 col-md-6" for="issue">Issue/Problem
-                            <input class="form-control" id="issue" type="text" name="issue" value="">
-          
-                        </label>
+        </label>
 
-                        <label class="form-label col-lg-3 col-md-6" for="sel">Camera/Audio/Video     
-                            <div class="input-group">
-                                <select  name="sel" id="sel" class="form-control " >
-                                    <option value=""></option>
-                                    <option value="cam">Camera</option>
-                                    <option value="aud">Audio</option>
-                                    <option value="vid">Video</option>
-                                </select>
-                                <!-- <input class="form-control  custom-width hidden" type="number" id="numberOfParts" name="numberOfParts" placeholder="no. of parts"> -->
-                                <input  class="form-control  hidden " type="file" accept="image/*" name="img" id="img"  style="width:50%;">
-                                <input class="form-control  hidden " type="file" accept="audio/*"  name="audio" id="audio" style="width:50%;" >
-                                <input class="form-control  hidden " type="file" accept="video/*"  name="video" id="video" style="width:50%;"    >
-                            </div>
-                       
-                        </label>
-                        <script>
+        <label style="width:25%;" class="form-label m-1" for="rem">Remark
+            <input type="text" class="form-control" name="rem" id="rem">
+        </label> 
+
+        <script>
             // Get the select element and input element
-            var partsChangeSelect = document.getElementById('sel');
-            var img = document.getElementById('img');
-            var audio = document.getElementById('audio');
-            var video = document.getElementById('video');
+            var partsChangeSelect = document.getElementById('partschange');
+            var numberOfPartsInput = document.getElementById('numberOfParts');
 
             partsChangeSelect.addEventListener('change', function () {
                 // Check if the selected value is 'yes'
-                if (partsChangeSelect.value === 'cam') {                
-                    img.classList.remove('hidden');
-                    audio.classList.add('hidden');
-                    video.classList.add('hidden');
-
-                } else if(partsChangeSelect.value === 'Audio') {               
-                    audio.classList.remove('hidden');
-                    img.classList.add('hidden');
-                    video.classList.add('hidden');
-                }
-                else{
-                    video.classList.remove('hidden');
-                    img.classList.add('hidden');
-                    audio.classList.add('hidden');
+                if (partsChangeSelect.value === 'yes') {
+                
+                    numberOfPartsInput.classList.remove('hidden');
+                } else {
+                
+                    numberOfPartsInput.classList.add('hidden');
                 }
             });  
         </script>
+        <?php
 
-                        <!-- <label class="form-label col-lg-3 col-md-6" for="img">Camera/Audio/Video                   
-                            <div class="tog">
-                            <input  class="form-control" type="file" accept="image/*" name="img" id="img" required>
-                            <input class="form-control" type="file" accept="audio/*"  name="audio" id="audio" >
-                            <input class="form-control" type="file" accept="video/*"  name="video" id="video"     >
-                            </div>
-                        </label> -->
-                
-                        <label class="form-label col-lg-3 col-md-6" for="remark">Remark                   
-                            <input class="form-control" id="remark" type="text" name="remark" value="">
-                        </label>
-                        </div> 
-                        <div class="row ps-2 mt-2">
-                        <label class="form-label col-lg-3 col-md-6" for="pstop">Production Stopped?
-                                <select class="form-select" name="pstop" id="pstop">
-                                    <option value=""></option>
-                                    <option value="yes">Yes</option>
-                                    <option value="no">No</option>
-                                </select>
-                        </label>   
-                   
-                        <label  class="form-label col-lg-3 col-md-6 mt-2" for="">Priority
-                            <br>
-                            <input class="form-check-input" type="radio" name="priority" value="low" id="flexRadioDefault1">
-                            <label class="form-check-label" for="flexRadioDefault1">
-                                Low
-                            </label>
-                                            
-                            <input class="form-check-input" type="radio" name="priority" value="medium" id="flexRadioDefault2" checked>
-                            <label class="form-check-label" for="flexRadioDefault2">
-                                Medium
-                            </label>
-                                            
-                            <input class="form-check-input" type="radio" name="priority" value="high" id="flexRadioDefault3" >
-                            <label class="form-check-label" for="flexRadioDefault3">
-                                High
-                            </label>                    
-                        </label>
-                        
-                        <div class="col"></div>
-                        <div class="col-auto mt-2">
-                            <a href="cticket.php" type="button" class="btn rounded-pill btn-danger mt-3">Back</a>
-                            <button type="submit" class="btn rounded-pill btn-success  mt-3" name="save" >Save</button>                             
-                        </div>                      
-                    </div>                             
-                </form>
-            </div>
-        </div>
-    </body>
-</html>
-<!-- dropdown serching selected2 -->
-<script src='../js/select2.min.js' type='text/javascript'></script>
-<script>
-    $(document).ready(function() {
-		$(".user").select2();
-	});
-
-  $('#cticket').addClass('active');
+    }
   
-    function Searchname(txtBoxRef) {
-
-    var f = true; //check if enter is detected
-    $(txtBoxRef).keypress(function (e) {
-        if (e.keyCode == '13' || e.which == '13'){
-            f = false;
+    if($_POST['sta']=='delay'){
+        ?>
+          <label style="width: 25%;" class="form-label m-1" for="approxdate">Approx close Date
+          <input class="form-control" type="date" name="approxdate" id="approxdate" >
+        </label>
+                       
+        <label style="width: 25%;" class="form-label m-1" for="rem">Remark
+            <input type="text" class="form-control" name="rem" id="rem">
+        </label> 
+        
+        <?php
         }
-    });
-    $(txtBoxRef).autocomplete({      
-        source: function( request, response ){
-            $.ajax({
-                url: "cticketget_data.php",
-                type: 'post',
-                dataType: "json",
-                data: {aname: request.term },
-                success: function( data ) {
-                    response( data );
-                },
-                error:function(data){
-                    console.log(data);
-                }
-            });
-        },
-        select: function (event, ui) {
-            $('#user').val(ui.item.label);
-            return false;
-        },
-        change: function (event, ui) {
-            if(f){
-                if (ui.item == null){
-                    $(this).val('');
-                    $(this).focus();
-                }
-            }
-        },
-        open: function () {
-        // Set a higher z-index for the Autocomplete dropdown
-        $('.ui-autocomplete').css('z-index',1500);
-        }
-        });
-  } 
-
-  function Searchmc(txtBoxRef) {
-      
-    var f = true; //check if enter is detected
-    $(txtBoxRef).keypress(function (e) {
-        if (e.keyCode == '13' || e.which == '13'){
-            f = false;
-        }
-    });
-    $(txtBoxRef).autocomplete({      
-    source: function( request, response ){
-            $.ajax({
-                url: "cticketget_data.php",
-                type: 'post',
-                dataType: "json",
-                data: {mcno: request.term },
-                success: function( data ) {
-                response( data );
-            },
-            error:function(data){
-                console.log(data);
-            }
-            });
-    },
-    select: function (event, ui) {
-            $('#mcno').val(ui.item.label);
-            return false;
-        },
-        change: function (event, ui) {
-            if (f){
-                if (ui.item == null){
-                $(this).val('');
-                $(this).focus();
-                }
-        }
+        if($_POST['sta']=='transfer'){
+        
+        ?>
+            <label style="width: 25%;" class="form-label m-1" for="rem">Remark
+                <input type="text" class="form-control" name="rem" id="rem">
+            </label> 
+        
+        <?php
     }
-    });
 }
-$(document).on('change','#mcno',function(){
-   
-    var mc_no=$(this).val();
-    console.log(mc_no)
-    if(mc_no === null || mc_no === ''){
-        //document.getElementById('dept').setAttribute('readonly', true);
-        $.ajax({
-        url:'cticketget_data.php',
-        type:'post',
-        data:{mc_no,mc_no},
-        success:function(data){
-         
-            $('#dept').val(data);
-            $('#dept').prop("readonly", false);
-        }
-    })
-    
-    }else{
-        $.ajax({
-        url:'cticketget_data.php',
-        type:'post',
-        data:{mc_no,mc_no},
-        success:function(data){
-         
-            $('#dept').val(data);
-            $('#dept').prop("readonly", true);
-        }
-    })
-    }
-   
-})
 
- 
-</script>
+if(isset($_POST['no'])){
+    $no=$_POST['no'];
+
+    ?>
+ <table class="table table-bordered table-striped text-center table-hover" id="patchange">
+    <thead class="bg-secondary text-light">
+        <tr>
+            <th>Sr</th>
+            <th>RMTA Number</th>
+            <th>Item Name</th>
+            <th>Qty</th>            
+            <th>Unit</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        $sr=1;
+        for($i=0;$i<$no;$i++){
+            ?>  
+            <tr>
+                <td><?php echo $sr ?></td>
+                <?php
+                $sql="select item FROM [RM_software].[dbo].[rm_item] ";
+                ?>
+                <td><input class="form-control rmta" type="text" name="rmta[]" onFocus="Searchrmta(this)" ></td>
+                <td><input class="form-control name" type="text" name="name[]" onFocus="Searchitemname(this)"></td>
+                <!-- <td>
+                    <select class="form-select name" name="name[]" id="name">
+                        <option value=""></option>
+                      
+                    </select>
+                </td> -->
+                <td><input type="text" name="qty[]" id="qty" autocomplete="off"></td>
+                <td><input type="text" class="punit" name="punit[]"  onFocus="Searchunit(this)"></td>
+                <td>
+                    <select class="form-select" name="status[]" >
+                   <!-- <input type="text" id="status" name="status[]" value="replace">  -->  
+                        <option selected default  value=""></option>                
+                        <option  value="replace">Replace</option>
+                        <option  value="new">New</option>
+                        <option  value="repair">Repair</option>
+                   </select>
+                </td>
+            </tr>
+            <?php
+            $sr++;
+            }
+    ?>
+    </tbody>
+</table>
 <?php
-
-include('../includes/footer.php');
+}
 ?>
+<script>
+     // Add an event listener to the close date input
+     document.getElementById('cdate').addEventListener('change', function () {
+        // Get the values of the start date and close date
+        var startDateValue = document.getElementById('sdate').value;
+        var closeDateValue = this.value;
+
+        // Check if both start date and close date are selected
+        if (startDateValue && closeDateValue) {
+            // Convert the values to Date objects
+            var startDate = new Date(startDateValue);
+            var closeDate = new Date(closeDateValue);
+
+            // Calculate the time difference in milliseconds
+            var timeDifference = closeDate - startDate;
+
+            // Calculate hours, minutes, and seconds from milliseconds
+            var hours = Math.floor(timeDifference / 3600000);
+            var minutes = Math.floor((timeDifference % 3600000) / 60000);
+            var seconds = Math.floor((timeDifference % 60000) / 1000);
+
+            // Display the time difference in the third input field
+            document.getElementById('resolved_time').value = hours + 'h ' + minutes + 'm ' + seconds + 's';
+        } else {
+            // If either start date or close date is not selected, clear the third input field
+            document.getElementById('resolved_time').value = '';
+        }
+    });
+    function Searchunit(txtBoxRef) {
+      
+      var f = true; //check if enter is detected
+      $(txtBoxRef).keypress(function (e) {
+          if (e.keyCode == '13' || e.which == '13'){
+              f = false;
+          }
+      });
+      $(txtBoxRef).autocomplete({      
+          source: function( request, response ){
+              $.ajax({
+                  url: "cticketget_data.php",
+                  type: 'post',
+                  dataType: "json",
+                  data: {unit: request.term },
+                  success: function( data ) {
+                      response( data );
+                  },
+                  error:function(data){
+                      console.log(data);
+                  }
+              });
+          },
+          select: function (event, ui) {
+              $(this).val(ui.item.label);
+              return false;
+          },
+          change: function (event, ui) {
+              if(f){
+                  if (ui.item == null){
+                      $(this).val('');
+                      $(this).focus();
+                  }
+              }
+          },
+          open: function () {
+          // Set a higher z-index for the Autocomplete dropdown
+          $('.ui-autocomplete').css('z-index',1500);
+          $('.ui-autocomplete').css('width', '300px'); 
+         }
+      });
+    } 
+
+    function Searchrmta(txtBoxRef) {
+      
+      var f = true; //check if enter is detected
+      $(txtBoxRef).keypress(function (e) {
+          if (e.keyCode == '13' || e.which == '13'){
+              f = false;
+          }
+      });
+      $(txtBoxRef).autocomplete({      
+          source: function( request, response ){
+              $.ajax({
+                  url: "cticketget_data.php",
+                  type: 'post',
+                  dataType: "json",
+                  data: {rmta: request.term },
+                  success: function( data ) {
+                      response( data );
+                  },
+                  error:function(data){
+                      console.log(data);
+                  }
+              });
+          },
+          select: function (event, ui) {
+              $(this).val(ui.item.label);
+              return false;
+          },
+          change: function (event, ui) {
+              if(f){
+                  if (ui.item == null){
+                      $(this).val('');
+                      $(this).focus();
+                  }
+              }
+          },
+          open: function () {
+          // Set a higher z-index for the Autocomplete dropdown
+          $('.ui-autocomplete').css('z-index',1500);
+          $('.ui-autocomplete').css('width', '300px'); 
+         }
+      });
+    } 
+
+
+
+//  $('#name').on('click',function({
+//     var rmta = $('.rmta').val();
+//     var selectElement = $(this);
+//     console.log(rmta)
+//     console.log("sds")
+
+//     $.ajax({
+//         url: "cticketget_data.php",
+//         type: 'post',   
+//         dataType: "json",
+//         data: { rmtano: rmta },
+//         success: function (data) {
+//             // Clear existing options
+//             selectElement.empty();
+
+//             // Append new options based on the received data
+//             $.each(data, function (index, item) {
+//                 selectElement.append($('<option>', {
+//                     value: item.label, // Use item.label as the value
+//                     text: item.label
+//                 }));
+//             });
+//         },
+//         error: function (data) {
+//             console.log(data);
+//         }
+//     });
+
+
+
+//  }))
+
+
+
+
+    function Searchitemname(txtBoxRef) {
+      
+            var rmta = $('.rmta').val();
+           
+            var f = true; // flag to check if enter key is detected
+
+            $(txtBoxRef).keypress(function (e) {
+                if (e.keyCode == 13 || e.which == 13) {
+                    f = false;
+                }
+            });
+
+            $(txtBoxRef).autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "cticketget_data.php",
+                        type: 'post',
+                        dataType: "json",
+                        data: { itname: request.term, rmtano: rmta },
+                        success: function (data) {
+                            response(data);
+                        },
+                        error: function (data) {
+                            console.log(data);
+                        }
+                    });
+                },
+                select: function (event, ui) {
+                    $(this).val(ui.item.label);
+                    return false;
+                },
+                change: function (event, ui) {
+                    if (f && ui.item == null) {
+                        $(this).val('');
+                        $(this).focus();
+                    }
+                },
+                open: function () {
+                    // Set a higher z-index for the Autocomplete dropdown
+                    $('.ui-autocomplete').css('z-index', 1500);
+                    $('.ui-autocomplete').css('width', '300px');
+                }
+            });
+
+            // Trigger the autocomplete when the input field is clicked with the mouse
+            $(txtBoxRef).click(function () {
+                console.log("Input field clicked");
+                $(this).autocomplete("search", "");
+            });
+}
+
+
+</script>

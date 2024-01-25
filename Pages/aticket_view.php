@@ -1,46 +1,55 @@
+
 <?php  
 include('../includes/dbcon.php');
 session_start();
+$teamlead=$_SESSION['isteamlead'];
+
 $page = $_POST['start'] / $_POST['length'] + 1; // Adjust as needed
 $length = $_POST['length'];
 
 // Calculate OFFSET based on the current page and length
 $offset = ($page - 1) * $length;
-$condition='';
-if( $_SESSION['urights']!="admin"){
 
-   // $condition.=" AND(a.istransfer=0 OR a.istransfer is  null)  AND(u.istransfer=0 OR u.istransfer is  null) ";
+$condition='';
+if($teamlead=='tool'){
+    $condition.=" t.room='tool' "  ;
+
+}else if($teamlead=='maint'){
+    $condition.=" t.room='maintenance'";
+}
+
+
+if( $_SESSION['urights']!="admin" ){
+
     $sql="WITH abc as(SELECT COUNT(*) AS cnt, ticketid
-    FROM uwticket_head 
-    GROUP BY ticketid HAVING  count(*)=1
-AND SUM(CASE WHEN status = 'transfer' THEN 1 ELSE 0 END) > 0)
-SELECT u.istransfer as u,a.istransfer,u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,u.ticketid,a.assign_to,format(a.assign_date,'dd-MM-yyyy') as adate,
+        FROM uwticket_head 
+        GROUP BY ticketid HAVING  count(*)=1
+        AND SUM(CASE WHEN status = 'transfer' THEN 1 ELSE 0 END) > 0)
+        SELECT u.istransfer as u,a.istransfer,u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.image,t.audio,t.video,t.remark,t.pstop,t.room,u.ticketid,a.assign_to,format(a.assign_date,'dd-MM-yyyy') as adate,
         a.approx_time,a.unit,a.istransfer,t.priority,u.Status,
         a.update_assign,a.srno as asr FROM assign a full outer join ticket t on a.ticket_id =t.srno
-        full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0
+        full outer join uwticket_head u on u.ticketid=a.ticket_id  where".$condition." and t.isdelete=0
         AND(a.istransfer=0 OR a.istransfer is  null)  AND(u.istransfer=0 OR u.istransfer is  null) and( u.isdelay<>1 or u.isdelay is  null)  or u.ticketid  in(select ticketid from abc)
-         OR assign_to is null
-         ORDER BY 
-    t.srno
+        ORDER BY 
+        t.srno
         OFFSET ".$offset." ROWS
-        FETCH NEXT  ".$length."  ROWS ONLY
-         
-         ";
-         $sqlCount="WITH abc as(SELECT COUNT(*) AS cnt, ticketid
-         FROM uwticket_head 
-         GROUP BY ticketid HAVING  count(*)=1
-     AND SUM(CASE WHEN status = 'transfer' THEN 1 ELSE 0 END) > 0)
-     SELECT count(*)as total FROM assign a full outer join ticket t on a.ticket_id =t.srno
-             full outer join uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0
+        FETCH NEXT  ".$length."  ROWS ONLY";
+
+    $sqlCount="WITH abc as(SELECT COUNT(*) AS cnt, ticketid
+        FROM uwticket_head 
+        GROUP BY ticketid HAVING  count(*)=1
+        AND SUM(CASE WHEN status = 'transfer' THEN 1 ELSE 0 END) > 0)
+        SELECT count(*)as total FROM assign a full outer join ticket t on a.ticket_id =t.srno
+             full outer join uwticket_head u on u.ticketid=a.ticket_id where".$condition." and t.isdelete=0
              AND(a.istransfer=0 OR a.istransfer is  null)  AND(u.istransfer=0 OR u.istransfer is  null) and( u.isdelay<>1 or u.isdelay is  null)  or u.ticketid  in(select ticketid from abc)
-              OR assign_to is null";
+            ";
    
 }else{
     $sql="WITH abc as(SELECT COUNT(*) AS cnt, ticketid
     FROM uwticket_head 
     GROUP BY ticketid HAVING COUNT(*) % 2 = 0
     AND SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) > 0)
-    SELECT u.istransfer as u,a.istransfer,u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.remark,t.pstop,u.ticketid,a.assign_to,format(a.assign_date,'dd-MM-yyyy') as adate,
+    SELECT u.istransfer as u,a.istransfer,u.resolved_time,u.approx_cdate,t.srno,t.date,t.username,t.mcno,t.department,t.plant,t.issue,t.image,t.audio,t.video,t.remark,t.pstop,t.room,u.ticketid,a.assign_to,format(a.assign_date,'dd-MM-yyyy') as adate,
     a.approx_time,a.unit,a.istransfer,t.priority,u.Status,
     a.update_assign,a.srno as asr FROM assign a  full outer join  ticket t on a.ticket_id =t.srno
     full outer join  uwticket_head u on u.ticketid=a.ticket_id  where t.isdelete=0 
@@ -52,6 +61,7 @@ SELECT u.istransfer as u,a.istransfer,u.resolved_time,u.approx_cdate,t.srno,t.da
         OFFSET ".$offset." ROWS
         FETCH NEXT  ".$length."  ROWS ONLY
     ";
+
     $sqlCount="WITH abc as(SELECT COUNT(*) AS cnt, ticketid
     FROM uwticket_head 
     GROUP BY ticketid HAVING COUNT(*) % 2 = 0
@@ -63,6 +73,7 @@ SELECT u.istransfer as u,a.istransfer,u.resolved_time,u.approx_cdate,t.srno,t.da
     OR assign_to is null";
      
 }
+
 $stmtCount = sqlsrv_query($conn, $sqlCount);
 $totalRecords = sqlsrv_fetch_array($stmtCount, SQLSRV_FETCH_ASSOC)['total'];
 $stmt = sqlsrv_query($conn,$sql);
@@ -83,11 +94,11 @@ while ($row = sqlsrv_fetch_array($stmt,SQLSRV_FETCH_ASSOC)) {
         $sr,
         '<a type="button" id="'.$row['srno'].'" data-name="'.$row['asr'].'" ' . 
         ($row['Status'] == 'closed' || ($row['u'] == 1 && $row1['cnt'] == 2) ? 'class="btn btn-success btn-sm rounded-pill assign assign-button disabled"' : 
-        'class="btn btn-success btn-sm rounded-pill assign assign-button"').'>Assign</a>',
+        'class="btn btn-success btn-sm rounded-pill assign assign-button"').'>Assign</a>
 
-        '<a type="button" class="btn btn-primary rounded-pill btn-sm edit"
-        id="'.$row['srno'].'">Edit</a>',   
-        '<a type="button" class="btn btn-danger rounded-pill btn-sm" ' .
+        <a type="button" class="btn btn-primary rounded-pill btn-sm edit"
+        id="'.$row['srno'].'">Edit</a> 
+        <a type="button" class="btn btn-danger rounded-pill btn-sm" ' .
         'href="aticket_db.php?deleteid=' . $row['srno'] . '&asr=' . $row['asr'] . '" ' .
         'onclick="return confirm(\'Are you sure you want to delete the ticket? Once you click OK, it will be removed from the below table?\')" ' .
         'name="delete">Cancel</a>',
@@ -101,6 +112,13 @@ while ($row = sqlsrv_fetch_array($stmt,SQLSRV_FETCH_ASSOC)) {
         $row['department'],
         $row['plant'],
         $row['issue'],
+        ($row['image']!='')? ($row['image'] != '') ? '<img src="../file/image-upload/' . $row['image'] . '" width="80" height="60">' : ''
+        :(($row['audio']!='') ?  '<audio id="aud"   controls><source src="../file/audio-upload/'. $row['audio'].'" type="audio/mp3"   > Your browser does not support the audio element.
+        </audio>' : ( ($row['video']!='')?   '<video id="vid" width="80" height="60" controls>
+        <source src="../file/video-upload/'. $row['video'].'" type="video/mp4">
+            Your browser does not support the video tag.
+    </video>': '' )),
+        $row['room']=='maintenance' ? 'main' : $row['room'],
         $row['remark'],
         $row['assign_to'] ?? '',
         $row['adate'] ?? '',
